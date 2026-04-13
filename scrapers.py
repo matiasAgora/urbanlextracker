@@ -35,6 +35,8 @@ URBANISM_KEYWORDS = [
     "urbanismo",
     "urbanístico",
     "urbanística",
+    "urbano",
+    "urbana",
     "arquitectura",
     "construcción",
     "inmobiliario",
@@ -46,6 +48,8 @@ URBANISM_KEYWORDS = [
     "plan regulador",
     "prc",
     "plan intercomunal",
+    "planificación",
+    "gestión urbana",
     "permiso de edificación",
     "recepción definitiva",
     "dirección de obras",
@@ -84,6 +88,7 @@ URBANISM_KEYWORDS = [
     "monumento nacional",
     "zona típica",
     "edificación",
+    "ddu",
 ]
 
 
@@ -431,91 +436,62 @@ def scrape_minvu() -> dict:
     items = []
     try:
         urls = [
-            "http://participacionciudadana.minvu.gob.cl/consultas-ciudadanas",
             "https://www.minvu.gob.cl/elementos-tecnicos/circulares-division-de-desarrollo-urbano-ddu/circulares-generales-por-numero/",
+            "https://www.minvu.gob.cl/elementos-tecnicos/circulares-division-de-desarrollo-urbano-ddu/circulares-especificas-ddu-por-numero/",
+            "https://www.minvu.gob.cl/noticias/noticias/",
+            "https://www.minvu.gob.cl/marco-normativo/",
         ]
         for url in urls:
             r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, verify=False)
             soup = BeautifulSoup(r.text, "html.parser")
 
-            tables = soup.find_all("table")
-            if tables:
-                for table in tables:
-                    rows = table.find_all("tr")
-                    found_in_table = 0
-                    for row in rows:
-                        if found_in_table >= 5:
-                            break
+            found_in_url = 0
+            for a in soup.find_all("a"):
+                if found_in_url >= 3:
+                    break
 
-                        cells = row.find_all("td")
-                        if not cells:
-                            continue
+                href = a.get("href", "")
+                texto = a.get_text(separator=" ").strip()
+                texto = re.sub(r"\s+", " ", texto)
 
-                        date_cell = cells[-1]
-                        date_str = date_cell.get_text().strip()
+                if is_item_valid(texto) and len(texto) > 15:
+                    # En MINVU a veces el texto viene con ".PDF - (XXX Kb)", limpiémoslo visualmente
+                    texto_limpio = re.sub(
+                        r"\.PDF\s*-\s*\(\d+\s*Kb\)", "", texto, flags=re.IGNORECASE
+                    ).strip()
 
-                        link_tag = row.find("a")
-                        if not link_tag:
-                            continue
+                    link = href
+                    if link and link.startswith("/"):
+                        link = "https://www.minvu.gob.cl" + link
+                    elif not link.startswith("http"):
+                        continue
 
-                        texto = link_tag.get_text().replace("\n", " ").strip()
-
-                        if is_item_valid(texto):
-                            found_in_table += 1
-                            if is_spanish_date_today(date_str):
-                                link = link_tag.get("href", "")
-                                if link and link.startswith("/"):
-                                    link = (
-                                        url.split("/")[0]
-                                        + "//"
-                                        + url.split("/")[2]
-                                        + link
-                                    )
-                                elif not link or not link.startswith("http"):
-                                    continue
-
-                                is_new = database.save_alert(
-                                    source=source,
-                                    title=texto,
-                                    url=link,
-                                    category="norma_tecnica",
-                                    date=date_str,
-                                )
-                                if is_new and len(items) < 3:
-                                    items.append(
-                                        f"MINVU: {texto} (Publicado: {date_str}) | Link: {link}"
-                                    )
-
-            else:
-                found_in_fallback = 0
-                for tag in soup.find_all("a"):
-                    if found_in_fallback >= 5:
-                        break
-
-                    texto = tag.get_text().replace("\n", " ").strip()
-                    if is_item_valid(texto):
-                        found_in_fallback += 1
-                        link = tag.get("href", "")
-                        if link and link.startswith("/"):
-                            link = url.split("/")[0] + "//" + url.split("/")[2] + link
-                        elif not link or not link.startswith("http"):
-                            continue
-
+                    # Solo guardamos si es un documento normativo, noticia MINVU o DDU
+                    if (
+                        "minvu.gob.cl" in link.lower()
+                        or "participacionciudadana" in link.lower()
+                        or "DDU" in texto_limpio
+                    ):
                         is_new = database.save_alert(
                             source=source,
-                            title=texto,
+                            title=texto_limpio,
                             url=link,
                             category="norma_tecnica",
                         )
-                        if is_new and len(items) < 3:
-                            items.append(f"MINVU: {texto} | Link: {link}")
+                        if is_new:
+                            items.append(f"MINVU: {texto_limpio} | Link: {link}")
+                            found_in_url += 1
 
     except Exception as e:
-        database.save_scrape_history(source, 0, "error", f"Error: {e}")
+        database.save_scrape_history(source, 0, "error", str(e))
+        return {
+            "source": source,
+            "items": [],
+            "count": 0,
+            "report_html": f"<p>Error: {e}</p>",
+        }
 
-    informe_md = procesar_salida(
-        source, items, "🏗️", "Ministerio de Vivienda y Urbanismo"
-    )
+    informe_md = procesar_salida(source, items, "🏢", "MINVU")
     database.save_scrape_history(source, len(items), "success")
     return {
         "source": source,
