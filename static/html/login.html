@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UrbanLexTracker — Iniciar Sesión</title>
+<meta name="description" content="Accede a tu panel de monitoreo normativo de Urban Lex Tracker."/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-container-low": "#131b2e", "tertiary": "#3ce36a",
+          "surface-container": "#171f33", "on-primary": "#002780",
+          "on-surface-variant": "#c6c5d4", "primary": "#b6c4ff",
+          "surface-container-high": "#222a3d", "on-surface": "#dae2fd",
+          "surface-container-lowest": "#060e20", "background": "#0b1326",
+          "primary-container": "#00267e", "outline-variant": "#454652",
+          "surface": "#0b1326", "error": "#ffb4ab",
+        },
+        fontFamily: { "headline": ["Manrope"], "body": ["Inter"], "label": ["Inter"] },
+        borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  body { min-height: 100dvh; background-color: #0b1326; color: #dae2fd; }
+  .input-field {
+    width: 100%; background: #060e20; border: 1px solid #454652;
+    border-radius: 12px; padding: 14px 16px; color: #dae2fd; font-family: Inter, sans-serif;
+    font-size: 15px; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-field:focus { border-color: #b6c4ff; box-shadow: 0 0 0 3px rgba(182,196,255,0.12); }
+  .input-field::placeholder { color: #454652; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .float { animation: float 4s ease-in-out infinite; }
+</style>
+</head>
+<body class="font-body">
+<script src="/static/js/auth.js"></script>
+<script>
+  // Si ya está autenticado, redirigir al dashboard
+  document.addEventListener("DOMContentLoaded", () => { ULT.redirectIfAuth(); });
+</script>
+
+<main class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+  <!-- Ambient glows -->
+  <div class="absolute top-[-5%] left-[-5%] w-[35%] h-[35%] bg-blue-900/20 blur-[120px] rounded-full pointer-events-none"></div>
+  <div class="absolute bottom-[-5%] right-[-5%] w-[25%] h-[25%] bg-green-900/10 blur-[100px] rounded-full pointer-events-none"></div>
+
+  <div class="w-full max-w-md z-10">
+    <!-- Brand -->
+    <div class="flex items-center gap-3 mb-10">
+      <span class="material-symbols-outlined text-primary text-3xl float">gavel</span>
+      <span class="font-headline font-extrabold text-2xl text-primary tracking-tighter">UrbanLexTracker</span>
+    </div>
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="font-headline font-extrabold text-4xl text-on-surface tracking-tight mb-2">Bienvenido</h1>
+      <p class="text-on-surface-variant text-base">Accede a tu panel de monitoreo normativo.</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="bg-surface-container-low rounded-2xl p-8 border border-white/5 shadow-2xl">
+      <form id="login-form" class="space-y-5">
+        <!-- Email -->
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">mail</span> Correo electrónico
+          </label>
+          <input id="email" type="email" class="input-field" placeholder="tu@correo.cl" autocomplete="email" required/>
+        </div>
+
+        <!-- Password -->
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">lock</span> Contraseña
+          </label>
+          <div class="relative">
+            <input id="password" type="password" class="input-field pr-12" placeholder="Tu contraseña" autocomplete="current-password" required/>
+            <button type="button" id="toggle-password" class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-xl" id="eye-icon">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <div id="error-msg" class="hidden bg-red-900/30 border border-red-700/50 text-red-300 text-sm rounded-xl px-4 py-3"></div>
+
+        <!-- Submit -->
+        <button id="submit-btn" type="submit"
+          class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all duration-200 mt-2">
+          Ingresar al Panel
+          <span class="material-symbols-outlined" id="btn-icon">arrow_forward</span>
+        </button>
+      </form>
+
+      <!-- Footer links -->
+      <div class="mt-6 flex items-center justify-between text-sm">
+        <a href="/registro" class="text-on-surface-variant hover:text-primary transition-colors font-medium">Crear cuenta</a>
+        <span class="text-outline-variant">|</span>
+        <span class="text-on-surface-variant text-xs">¿Olvidaste tu clave? Contacta al administrador</span>
+      </div>
+    </div>
+
+    <!-- Demo credentials hint -->
+    <div class="mt-4 bg-blue-900/20 border border-blue-800/30 rounded-xl px-4 py-3 text-xs text-blue-300 text-center">
+      <span class="material-symbols-outlined text-sm align-middle mr-1">info</span>
+      Demo: <strong>matias@agorarevision.cl</strong> / <strong>Agora05522</strong>
+    </div>
+  </div>
+</main>
+
+<script>
+  const form = document.getElementById("login-form");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const errorMsg = document.getElementById("error-msg");
+  const submitBtn = document.getElementById("submit-btn");
+  const toggleBtn = document.getElementById("toggle-password");
+  const eyeIcon = document.getElementById("eye-icon");
+
+  // Toggle password visibility
+  toggleBtn.addEventListener("click", () => {
+    const isPass = passwordInput.type === "password";
+    passwordInput.type = isPass ? "text" : "password";
+    eyeIcon.textContent = isPass ? "visibility_off" : "visibility";
+  });
+
+  // Form submission
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg.classList.add("hidden");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="inline-block animate-spin mr-2" style="display:inline-block">⟳</span> Verificando...`;
+
+    try {
+      await ULT.login(emailInput.value.trim(), passwordInput.value);
+      submitBtn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> Acceso concedido`;
+      submitBtn.classList.replace("from-primary", "from-green-700");
+      setTimeout(() => { window.location.href = "/dashboard"; }, 600);
+    } catch (err) {
+      errorMsg.textContent = err.message;
+      errorMsg.classList.remove("hidden");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `Ingresar al Panel <span class="material-symbols-outlined">arrow_forward</span>`;
+    }
+  });
+</script>
+</body>
+</html>

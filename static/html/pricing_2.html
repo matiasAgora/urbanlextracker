@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Planes y Membresías — UrbanLexTracker</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b6c4ff",
+                        "primary-container": "#00267e",
+                        "tertiary": "#3ce36a",
+                        "background": "#0b1326",
+                        "surface": "#0f172a",
+                        "on-surface": "#dae2fd",
+                        "on-surface-variant": "#c6c5d4"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #0b1326; color: #dae2fd; scroll-behavior: smooth; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .hero-gradient { background: radial-gradient(circle at 50% -20%, rgba(182, 196, 255, 0.1) 0%, transparent 60%); }
+        .text-gradient { background: linear-gradient(135deg, #fff 0%, #b6c4ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hover-lift { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .hover-lift:hover { transform: translateY(-8px); border-color: rgba(182, 196, 255, 0.3); box-shadow: 0 30px 60px -15px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="font-body selection:bg-primary/30 min-h-screen flex flex-col hero-gradient">
+
+<!-- Navigation -->
+<nav class="fixed top-0 w-full z-[100] border-b border-white/5 bg-background/80 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3">
+            <div class="bg-primary p-1.5 rounded-lg">
+                <span class="material-symbols-outlined text-background font-bold text-xl">gavel</span>
+            </div>
+            <span class="font-headline font-extrabold text-xl tracking-tighter text-white">UrbanLexTracker</span>
+        </a>
+        <div class="hidden md:flex items-center gap-10">
+            <a href="/" class="text-sm font-bold text-on-surface-variant hover:text-white transition-colors">Volver a Inicio</a>
+            <a href="/dashboard" class="px-6 py-2.5 bg-primary text-background rounded-full font-bold text-sm hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20">Acceso Demo</a>
+        </div>
+    </div>
+</nav>
+
+<main class="flex-1 pt-40 pb-32 px-6">
+    <div class="max-w-7xl mx-auto space-y-20">
+        
+        <!-- Header -->
+        <div class="text-center space-y-6 max-w-3xl mx-auto">
+            <h1 class="font-headline text-4xl lg:text-6xl font-black tracking-tight"><span class="text-gradient">Elija su Plan</span> Estratégico</h1>
+            <p class="text-lg text-on-surface-variant font-light leading-relaxed">
+                Invierta en la seguridad jurídica de su oficina. Monitoreo automatizado, análisis con IA y alertas en tiempo real diseñadas para el ecosistema urbanístico de élite.
+            </p>
+        </div>
+
+        <!-- Pricing Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pt-8">
+            
+            <!-- Plan Profesional -->
+            <div class="glass rounded-[40px] p-10 flex flex-col space-y-8 hover-lift border-white/5 transition-all">
+                <div class="space-y-4">
+                    <div class="inline-block px-4 py-1 rounded-full bg-white/5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant border border-white/5 mt-0">Individual</div>
+                    <h3 class="text-2xl font-headline font-extrabold">Profesional</h3>
+                    <p class="text-sm text-on-surface-variant/70 leading-relaxed font-medium">Perfecto para arquitectos y revisores independientes.</p>
+                </div>
+                
+                <div class="pt-4">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black">$29.990</span>
+                        <span class="text-on-surface-variant font-bold text-sm">/mes</span>
+                    </div>
+                </div>
+
+                <ul class="space-y-5 flex-1 pt-4">
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Monitoreo de 9 fuentes críticas regionales</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Búsquedas por palabras clave ilimitadas</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Notificaciones inmediatas vía Email</span>
+                    </li>
+                </ul>
+
+                <a href="/registro" class="w-full py-5 rounded-2xl bg-white/5 border border-white/10 font-black text-sm uppercase tracking-widest text-center hover:bg-white/10 transition-all">Comenzar Ahora</a>
+            </div>
+
+            <!-- Plan Empresa (Destacado) -->
+            <div class="glass rounded-[40px] p-10 flex flex-col space-y-8 relative border-primary/30 shadow-[0_0_50px_-12px_rgba(182,196,255,0.2)] hover-lift transition-all">
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-background text-[10px] font-black uppercase tracking-[0.2em] px-6 py-1.5 rounded-full shadow-xl">Recomendado</div>
+                
+                <div class="space-y-4">
+                    <div class="inline-block px-4 py-1 rounded-full bg-primary/10 text-[10px] font-black uppercase tracking-widest text-primary border border-primary/10">Para Oficinas</div>
+                    <h3 class="text-2xl font-headline font-extrabold text-primary">Empresa</h3>
+                    <p class="text-sm text-on-surface-variant/70 leading-relaxed font-medium">Diseñado para bufetes de abogados urbanistas y constructoras.</p>
+                </div>
+
+                <div class="pt-4">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-5xl font-black text-white">$89.990</span>
+                        <span class="text-on-surface-variant font-bold text-sm">/mes</span>
+                    </div>
+                    <p class="text-[10px] text-tertiary font-bold mt-2 uppercase tracking-widest italic">Incluye 30 días de prueba sin costo</p>
+                </div>
+
+                <ul class="space-y-5 flex-1 pt-4">
+                    <li class="flex items-start gap-3 text-sm font-bold">
+                        <span class="material-symbols-outlined text-tertiary">verified_user</span>
+                        <span>Todo lo del Plan Profesional</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Análisis ejecutivo de impacto con IA</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Generación de Reportes PDF Profesionales</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Hasta 5 cuentas de usuario concurrente</span>
+                    </li>
+                </ul>
+
+                <a href="/registro" class="w-full py-5 rounded-2xl bg-primary text-background font-black text-sm uppercase tracking-widest text-center hover:brightness-110 transition-all shadow-lg shadow-primary/20">Impulsar mi Oficina</a>
+            </div>
+
+            <!-- Plan Corporativo -->
+            <div class="glass rounded-[40px] p-10 flex flex-col space-y-8 hover-lift border-white/5 transition-all">
+                <div class="space-y-4">
+                    <div class="inline-block px-4 py-1 rounded-full bg-white/5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant border border-white/5">Personalizado</div>
+                    <h3 class="text-2xl font-headline font-extrabold">Corporativo</h3>
+                    <p class="text-sm text-on-surface-variant/70 leading-relaxed font-medium">Soluciones integradas para grandes inmobiliarias y holdings.</p>
+                </div>
+
+                <div class="pt-4">
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black">Custom</span>
+                    </div>
+                </div>
+
+                <ul class="space-y-5 flex-1 pt-4">
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Integración vía API con sistemas CRM/BIM</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Mapeo normativo geo-referenciado</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Soporte legal urbanístico preferente</span>
+                    </li>
+                    <li class="flex items-start gap-3 text-sm">
+                        <span class="material-symbols-outlined text-primary text-xl">check_circle</span>
+                        <span>Entrenamiento de IA con base histórica propia</span>
+                    </li>
+                </ul>
+
+                <a href="mailto:ventas@urbanlex.com" class="w-full py-5 rounded-2xl bg-white/5 border border-white/10 font-black text-sm uppercase tracking-widest text-center hover:bg-white/10 transition-all">Contactar Consultor</a>
+            </div>
+
+        </div>
+
+        <!-- Trust / FAQ Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-16">
+            <div class="glass rounded-[40px] p-12 space-y-6">
+                <h4 class="text-xl font-headline font-bold">Preguntas Frecuentes</h4>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-sm font-bold text-primary mb-2">¿Puedo cancelar en cualquier momento?</p>
+                        <p class="text-xs text-on-surface-variant leading-relaxed">Sí, nuestras suscripciones son mensuales y sin contratos de permanencia forzosa para los planes individuales y empresa.</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-primary mb-2">¿Cómo funciona la prueba gratuita?</p>
+                        <p class="text-xs text-on-surface-variant leading-relaxed">El plan Empresa ofrece 30 días de acceso total. No se realizará ningún cargo hasta que finalice el periodo de prueba.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col justify-center items-center text-center p-12 space-y-6">
+                 <div class="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-primary text-4xl">verified</span>
+                </div>
+                <h4 class="text-2xl font-headline font-extrabold tracking-tight">Certeza Jurídica Garantizada</h4>
+                <p class="text-on-surface-variant text-sm font-light italic leading-relaxed">
+                    "UrbanLexTracker ha reducido nuestro tiempo de investigación en un 70%, permitiéndonos cerrar acuerdos con la seguridad de cumplir toda la normativa vigente."
+                </p>
+                <p class="text-[10px] font-black uppercase tracking-widest opacity-30">— DEMO _Beta Test v2.5 Experience</p>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<footer class="py-12 px-6 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="flex items-center gap-3 opacity-50">
+            <span class="font-headline font-black text-lg tracking-tight">UrbanLexTracker</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/20">© 2024</span>
+        </div>
+        <div class="flex gap-8">
+            <a href="/" class="text-xs font-bold text-on-surface-variant hover:text-white transition-colors uppercase tracking-widest">Inicio</a>
+            <a href="/dashboard" class="text-xs font-bold text-on-surface-variant hover:text-white transition-colors uppercase tracking-widest">Dashboard</a>
+            <a href="mailto:soporte@urbanlex.com" class="text-xs font-bold text-on-surface-variant hover:text-white transition-colors uppercase tracking-widest">Contacto</a>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

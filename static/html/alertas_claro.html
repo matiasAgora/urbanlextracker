@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alertas Normativas - UrbanLexTracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563eb",
+                        "background-light": "#ffffff",
+                        "background-alt": "#f8fafc",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background-alt text-slate-900 font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-4 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-600">menu</span>
+<h1 class="text-xl font-bold tracking-tight text-slate-900">UrbanLexTracker</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-slate-100 transition-colors relative">
+<span class="material-symbols-outlined text-slate-600">notifications</span>
+<span class="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+</div>
+</header>
+<!-- Search & Filters Container -->
+<div class="px-4 py-3 space-y-4 bg-white shadow-sm">
+<!-- Search Bar -->
+<label class="relative flex items-center w-full">
+<span class="material-symbols-outlined absolute left-4 text-slate-400">search</span>
+<input class="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white text-base placeholder:text-slate-500 transition-all" placeholder="Buscar términos legales, leyes o decretos" type="text"/>
+</label>
+<!-- Filter Chips -->
+<div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-slate-900 text-white px-4 text-sm font-medium">
+                    Todas las fuentes
+                </button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white border border-slate-200 text-slate-700 px-4 text-sm font-medium hover:bg-slate-50">
+                    Diario Oficial
+                    <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white border border-slate-200 text-slate-700 px-4 text-sm font-medium hover:bg-slate-50">
+                    Municipal
+                    <span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white border border-slate-200 text-slate-700 px-4 text-sm font-medium hover:bg-slate-50">
+                    Nacional
+                </button>
+</div>
+</div>
+<!-- Feed Content -->
+<main class="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-24">
+<h2 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Últimas Publicaciones</h2>
+<!-- Card 1 -->
+<div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:scale-[0.98] transition-transform">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="bg-blue-50 p-1.5 rounded-lg">
+<span class="material-symbols-outlined text-blue-600 text-[20px]">gavel</span>
+</div>
+<span class="text-[11px] font-bold text-slate-500 uppercase">Diario Oficial</span>
+</div>
+<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide">Nuevo</span>
+</div>
+<h3 class="text-base font-bold leading-snug mb-3 text-slate-800">Decreto 452/2023: Nuevas Regulaciones de Zonificación Urbana para Áreas Metropolitanas</h3>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span class="text-xs">24 Oct, 2023</span>
+</div>
+<button class="text-blue-600 text-xs font-semibold flex items-center gap-1">
+                        Ver detalles
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:scale-[0.98] transition-transform">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="bg-slate-100 p-1.5 rounded-lg">
+<span class="material-symbols-outlined text-slate-600 text-[20px]">account_balance</span>
+</div>
+<span class="text-[11px] font-bold text-slate-500 uppercase">Concejo Municipal</span>
+</div>
+</div>
+<h3 class="text-base font-bold leading-snug mb-3 text-slate-800">Resolución N° 88: Enmienda a las Tasas de Uso del Espacio Público</h3>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span class="text-xs">23 Oct, 2023</span>
+</div>
+<button class="text-blue-600 text-xs font-semibold flex items-center gap-1">
+                        Ver detalles
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:scale-[0.98] transition-transform">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="bg-purple-50 p-1.5 rounded-lg">
+<span class="material-symbols-outlined text-purple-600 text-[20px]">description</span>
+</div>
+<span class="text-[11px] font-bold text-slate-500 uppercase">Poder Legislativo</span>
+</div>
+<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide">Nuevo</span>
+</div>
+<h3 class="text-base font-bold leading-snug mb-3 text-slate-800">Ley 21.560: Normas de Protección Ambiental para Infraestructura Industrial</h3>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span class="text-xs">23 Oct, 2023</span>
+</div>
+<button class="text-blue-600 text-xs font-semibold flex items-center gap-1">
+                        Ver detalles
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:scale-[0.98] transition-transform">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="bg-amber-50 p-1.5 rounded-lg">
+<span class="material-symbols-outlined text-amber-600 text-[20px]">apartment</span>
+</div>
+<span class="text-[11px] font-bold text-slate-500 uppercase">Ministerio de Urbanismo</span>
+</div>
+</div>
+<h3 class="text-base font-bold leading-snug mb-3 text-slate-800">Guías Operativas para Proyectos de Vivienda Sostenible 2024</h3>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span class="text-xs">22 Oct, 2023</span>
+</div>
+<button class="text-blue-600 text-xs font-semibold flex items-center gap-1">
+                        Ver detalles
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 px-4 pb-6 pt-2 flex justify-around items-center z-20 shadow-[0_-1px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center gap-1 text-blue-600" href="#">
+<span class="material-symbols-outlined text-[24px]">rss_feed</span>
+<span class="text-[10px] font-bold">Novedades</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[24px]">search</span>
+<span class="text-[10px] font-medium">Buscar</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[24px]">bookmark</span>
+<span class="text-[10px] font-medium">Guardado</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="text-[10px] font-medium">Perfil</span>
+</a>
+</nav>
+</div>
+</body></html>

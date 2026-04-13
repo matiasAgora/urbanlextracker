@@ -1,0 +1,12 @@
+{
+  "apphosting": {
+    "backendId": "urban-lex-tracker",
+    "rootDir": "."
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

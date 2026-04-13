@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UrbanLexTracker — Pizarrón de Monitoreo</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-low": "#131b2e", "tertiary": "#3ce36a", "primary": "#b6c4ff",
+                        "surface-container": "#171f33", "on-surface": "#dae2fd", "background": "#0b1326",
+                        "outline-variant": "#454652", "surface": "#0b1326", "secondary": "#b4cad6"
+                    },
+                    fontFamily: { "headline": ["Manrope"], "body": ["Inter"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { min-height: 100dvh; background-color: #0b1326; overflow-x: hidden; }
+        .sidebar { transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 80px; overflow: hidden; cursor: pointer; }
+        .sidebar.expanded { width: 280px; }
+        .main-content { transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 80px; }
+        .sidebar.expanded + .main-content { margin-left: 280px; }
+        .sidebar-text { opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; }
+        .sidebar.expanded .sidebar-text { opacity: 1; pointer-events: auto; }
+        
+        .bot-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.05); position: relative; }
+        .bot-card:hover { transform: translateY(-4px); border-color: rgba(182,196,255,0.2); background: rgba(23, 31, 51, 0.9); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.5); }
+        
+        .btn-scrape-mini { 
+            position: absolute; bottom: 1.5rem; right: 1.5rem; 
+            width: 32px; height: 32px; border-radius: 10px;
+            background: rgba(182, 196, 255, 0.1); color: #b6c4ff;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; border: 1px solid rgba(182, 196, 255, 0.2);
+        }
+        .btn-scrape-mini:hover { background: #b6c4ff; color: #0b1326; transform: scale(1.1); }
+        .btn-scrape-mini.loading { animation: spin 1s linear infinite; pointer-events: none; opacity: 0.5; }
+        
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse-soft { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .status-pulse { animation: pulse-soft 2s infinite; }
+    </style>
+</head>
+<body class="font-body text-on-surface">
+
+<!-- Sidebar Navigation -->
+<aside id="sidebar" class="sidebar fixed top-0 left-0 h-full bg-surface-container border-r border-white/5 z-[60] flex flex-col group" onclick="expandSidebar(event)">
+    <a href="/" class="p-6 flex items-center gap-4 mb-4 hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+        <div class="bg-primary p-2 rounded-xl flex-shrink-0">
+            <span class="material-symbols-outlined text-background font-bold">gavel</span>
+        </div>
+        <span class="sidebar-text font-headline font-extrabold text-xl text-primary">UrbanLexTracker</span>
+    </a>
+    
+    <nav class="flex-1 px-4 space-y-2 mt-4">
+        <a href="/dashboard" class="flex items-center gap-4 p-3 rounded-xl bg-primary/10 text-primary transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined !fill-1">dashboard</span>
+            <span class="sidebar-text font-bold text-sm">Pizarrón General</span>
+        </a>
+        <a href="/alertas" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="sidebar-text font-bold text-sm">Historial de Alertas</span>
+        </a>
+        <a href="/configuracion" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">settings</span>
+            <span class="sidebar-text font-bold text-sm">Configuración</span>
+        </a>
+    </nav>
+    
+    <div class="px-4 py-6 border-t border-white/5 space-y-4">
+        <a href="/pricing" class="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-primary/20 to-transparent border border-primary/20 text-primary hover:from-primary/30 transition-all shadow-lg shadow-primary/5" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined font-bold">star</span>
+            <span class="sidebar-text font-bold text-sm uppercase tracking-widest">Planes y Precios</span>
+        </a>
+        <button onclick="ULT.logout(); event.stopPropagation();" class="w-full flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-error/10 hover:text-error transition-all">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="sidebar-text font-bold text-sm">Cerrar Sesión</span>
+        </button>
+    </div>
+</aside>
+
+<div class="main-content min-h-screen flex flex-col">
+    <header class="h-24 px-8 flex items-center justify-between border-b border-white/5 bg-background/50 backdrop-blur-md sticky top-0 z-40">
+        <div>
+            <h1 class="text-2xl font-headline font-black tracking-tight">Pizarrón de Monitoreo</h1>
+            <p class="text-xs text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Vigilancia Normativa Activa</p>
+        </div>
+        <div class="flex items-center gap-4">
+             <button id="btn-total-scrape" onclick="runAllScrapes()" class="bg-primary text-background px-6 py-2 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                <span id="total-scrape-icon" class="material-symbols-outlined text-sm">sync</span> Rastreo Total
+            </button>
+            <div id="user-display" class="hidden sm:flex items-center gap-4 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                <div class="text-right">
+                    <p id="user-name" class="text-xs font-black">---</p>
+                    <p id="user-role" class="text-[10px] text-tertiary font-bold uppercase tracking-tighter">Demo Access</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-black uppercase">U</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="p-8 space-y-12 max-w-7xl mx-auto w-full">
+        <section>
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-lg font-headline font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">analytics</span> Estado de los Bots
+                </h2>
+                <span class="text-[10px] font-bold text-tertiary bg-tertiary/10 px-3 py-1 rounded-full uppercase tracking-widest status-pulse">Totalmente Operativo</span>
+            </div>
+            
+            <div id="bot-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Data will be injected here -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="p-8 text-center border-t border-white/5 opacity-30 mt-auto">
+        <p class="text-[10px] font-bold uppercase tracking-widest">UrbanLexTracker Premium — © 2024</p>
+    </footer>
+</div>
+
+<script>
+let isExpanded = false;
+function expandSidebar(event) {
+    const sidebar = document.getElementById('sidebar');
+    if (!isExpanded) { sidebar.classList.add('expanded'); isExpanded = true; }
+    else if (event.target === sidebar || event.target.tagName === 'ASIDE') {
+        sidebar.classList.remove('expanded'); isExpanded = false;
+    }
+}
+
+async function loadDashboard() {
+    try {
+        const user = await auth.require_auth_ui();
+        document.getElementById('user-name').textContent = user.nombre || user.email;
+        document.getElementById('user-display').classList.remove('hidden');
+
+        const resp = await fetch('/api/dashboard/summary', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+        });
+        const data = await resp.json();
+        renderBotGrid(data.bot_board);
+    } catch (err) { console.error(err); }
+}
+
+function renderBotGrid(bots) {
+    const grid = document.getElementById('bot-grid');
+    grid.innerHTML = '';
+    
+    bots.forEach(bot => {
+        const card = document.createElement('div');
+        card.className = 'bot-card bg-surface-container rounded-[32px] p-6 flex flex-col justify-between cursor-pointer';
+        card.onclick = () => window.location.href = `/detalle?source=${encodeURIComponent(bot.name)}`;
+        
+        card.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex justify-between items-start">
+                    <div class="bg-primary/10 p-3 rounded-2xl">
+                        <span class="material-symbols-outlined text-primary text-2xl">${getBotIcon(bot.name)}</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-headline font-black text-on-surface">${bot.name}</h3>
+                    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mt-1">Sincronizado: ${bot.last_sync}</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-6 border-t border-white/5">
+                <p class="text-[10px] text-on-surface-variant font-black uppercase tracking-tighter mb-2">Último hallazgo:</p>
+                <p class="text-xs text-on-surface/80 leading-relaxed font-medium line-clamp-3 italic">
+                    "${bot.last_finding || "Exploración en curso sin novedades legales..."}"
+                </p>
+            </div>
+            
+            <button onclick="runBotScrape(event, '${bot.source_id}', this)" class="btn-scrape-mini" title="Rastrear esta fuente">
+                <span class="material-symbols-outlined text-sm">sync</span>
+            </button>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+async function runBotScrape(event, sourceId, btn) {
+    event.stopPropagation();
+    btn.classList.add('loading');
+    btn.querySelector('.material-symbols-outlined').textContent = 'autorenew';
+    
+    try {
+        const resp = await fetch(`/api/scrape/${sourceId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+        });
+        if(resp.ok) {
+            ULT.showToast(`Rastreo de ${sourceId} completado`, "success");
+            loadDashboard(); // Refresh cards
+        } else {
+            ULT.showToast("Error en el rastreo", "error");
+        }
+    } catch (e) { console.error(e); }
+    
+    btn.classList.remove('loading');
+    btn.querySelector('.material-symbols-outlined').textContent = 'sync';
+}
+
+async function runAllScrapes() {
+    const btn = document.getElementById('btn-total-scrape');
+    const icon = document.getElementById('total-scrape-icon');
+    
+    btn.classList.add('opacity-50', 'pointer-events-none');
+    icon.classList.add('animate-spin');
+    ULT.showToast("Iniciando Rastreo Total de Fuentes...", "info");
+    
+    try {
+        const resp = await fetch('/api/scrape/all', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+        });
+        if(resp.ok) {
+            ULT.showToast("Actualización Jurídica Completa", "success");
+            loadDashboard();
+        }
+    } catch(e) { console.error(e); }
+    
+    btn.classList.remove('opacity-50', 'pointer-events-none');
+    icon.classList.remove('animate-spin');
+}
+
+function getBotIcon(name) {
+    const icons = {
+        "Diario Oficial": "gavel", "Contraloría": "account_balance", "MINVU": "home_work", "BCN": "description",
+        "Poder Judicial": "balance", "Prensa": "news", "Proyectos de Ley": "rule", "SEA": "nature_people"
+    };
+    return icons[name] || "robot";
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>

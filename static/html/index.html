@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UrbanLexTracker — Inteligencia Legal y Normativa para el Sector Inmobiliario</title>
+    <meta name="description" content="La plataforma PropTech definitiva para arquitectos, abogados y desarrolladores inmobiliarios. Monitoreo automatizado con IA de fuentes oficiales en Chile."/>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b6c4ff",
+                        "primary-container": "#00267e",
+                        "tertiary": "#3ce36a",
+                        "background": "#0b1326",
+                        "surface": "#0f172a",
+                        "on-surface": "#dae2fd",
+                        "on-surface-variant": "#c6c5d4"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #0b1326; color: #dae2fd; scroll-behavior: smooth; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .hero-gradient { background: radial-gradient(circle at 50% 50%, rgba(182, 196, 255, 0.08) 0%, transparent 70%); }
+        .text-gradient { background: linear-gradient(135deg, #fff 0%, #b6c4ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hover-lift { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .hover-lift:hover { transform: translateY(-8px); }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        .floating { animation: float 6s ease-in-out infinite; }
+    </style>
+</head>
+<body class="font-body selection:bg-primary/30">
+
+<!-- Navigation -->
+<nav class="fixed top-0 w-full z-[100] border-b border-white/5 bg-background/80 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-primary p-1.5 rounded-lg">
+                <span class="material-symbols-outlined text-background font-bold text-xl">gavel</span>
+            </div>
+            <span class="font-headline font-extrabold text-xl tracking-tighter text-white">UrbanLexTracker</span>
+        </div>
+        <div class="hidden md:flex items-center gap-10">
+            <a href="#solucion" class="text-sm font-bold text-on-surface-variant hover:text-white transition-colors">Solución</a>
+            <a href="#audiencia" class="text-sm font-bold text-on-surface-variant hover:text-white transition-colors">Para quién</a>
+            <a href="/pricing" class="text-sm font-bold text-on-surface-variant hover:text-white transition-colors">Planes</a>
+            <a href="/dashboard" class="px-6 py-2.5 bg-primary text-background rounded-full font-bold text-sm hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20">Acceso Demo</a>
+        </div>
+        <button class="md:hidden text-white"><span class="material-symbols-outlined">menu</span></button>
+    </div>
+</nav>
+
+<main>
+    <!-- Hero Section -->
+    <section class="relative pt-40 pb-32 px-6 overflow-hidden hero-gradient">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-8 relative z-10 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-[10px] uppercase tracking-widest leading-none">
+                    <span class="flex h-2 w-2 rounded-full bg-tertiary animate-pulse"></span> Sistema de Monitoreo en Tiempo Real
+                </div>
+                <h1 class="font-headline text-5xl lg:text-7xl font-black leading-[1.05] tracking-tight">
+                    Domine la Certeza <br> <span class="text-gradient">Legal Urbanística</span>
+                </h1>
+                <p class="text-xl text-on-surface-variant max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
+                    Vigilancia 24/7 de las 9 fuentes oficiales más críticas de Chile. Automatización impulsada por IA para arquitectos, abogados y desarrolladores que no pueden permitirse el riesgo de la desactualización.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+                    <a href="/dashboard" class="px-10 py-5 bg-primary text-background rounded-2xl font-black text-lg hover-lift shadow-2xl shadow-primary/20 flex items-center justify-center gap-3">
+                        Explorar el Demo <span class="material-symbols-outlined">arrow_forward</span>
+                    </a>
+                    <a href="/pricing" class="px-10 py-5 glass rounded-2xl font-bold text-lg hover:bg-white/5 transition-all flex items-center justify-center">
+                        Ver Planes
+                    </a>
+                </div>
+                <div class="flex items-center gap-6 justify-center lg:justify-start pt-8 opacity-50 grayscale">
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Fuentes Monitoreadas:</span>
+                    <span class="text-xs font-bold font-headline">Diario Oficial</span>
+                    <span class="text-xs font-bold font-headline">CGR</span>
+                    <span class="text-xs font-bold font-headline">MINVU</span>
+                    <span class="text-xs font-bold font-headline">BCN</span>
+                </div>
+            </div>
+
+            <div class="relative group">
+                <div class="absolute -inset-4 bg-primary/20 rounded-[40px] blur-[80px] opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <div class="relative glass rounded-[40px] p-4 shadow-2xl floating">
+                    <div class="rounded-[30px] overflow-hidden border border-white/5">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCrLXk08doBG0-rb9KLGOtAGr0FIm7WX3yUfEmopN3JCV-72WSZN7fXG6h9C9Ez28jHFBaXXH7jqZUKCMC7e7GZ62pSO9IjLFGeVOFECYUxzmcrSjAhDmYHVMuJhCLULPUq3lOnsWXsgl80TAC6C-HxZ_lNZG0Ox0dCJe8Q-Z00IHZTBNCL-aY9axJcmOAOPfiRml04OeAMOHe1GUFwiuej2XdSPEto3Vh8hWs5RA9LARqYEHMf0VI7b8s-CI3O3j-jw_0_uAhc0I" class="w-full h-auto" alt="Dashboard Preview">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Section -->
+    <section id="solucion" class="py-32 px-6">
+        <div class="max-w-7xl mx-auto space-y-24">
+            <div class="text-center space-y-6">
+                <h2 class="font-headline text-3xl lg:text-5xl font-extrabold tracking-tight">Estar al día no es una opción, <br><span class="text-primary italic">es su ventaja competitiva</span></h2>
+                <p class="text-on-surface-variant max-w-3xl mx-auto text-lg leading-relaxed">
+                    Navegar por los portales gubernamentales cada mañana es ineficiente. UrbanLexTracker procesa miles de registros diariamente para que usted reciba solo lo que impacta sus proyectos.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="p-10 glass rounded-[32px] hover-lift space-y-6">
+                    <div class="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-3xl">hub</span>
+                    </div>
+                    <h3 class="font-headline text-2xl font-bold">Omnicanalidad</h3>
+                    <p class="text-on-surface-variant leading-relaxed">Rastreamos simultáneamente Diario Oficial, Contraloría (CGR), MINVU, BCN, Poder Judicial, Prensa, Proyectos de Ley, IPT y SEA.</p>
+                </div>
+                <div class="p-10 glass rounded-[32px] hover-lift space-y-6">
+                    <div class="h-14 w-14 bg-tertiary/10 rounded-2xl flex items-center justify-center">
+                        <span class="material-symbols-outlined text-tertiary text-3xl">psychology</span>
+                    </div>
+                    <h3 class="font-headline text-2xl font-bold">Curatoría con IA</h3>
+                    <p class="text-on-surface-variant leading-relaxed">No solo listamos enlaces. Nuestro motor de IA procesa el lenguaje legal complejo y genera resúmenes ejecutivos listos para la toma de decisiones.</p>
+                </div>
+                <div class="p-10 glass rounded-[32px] hover-lift space-y-6">
+                    <div class="h-14 w-14 bg-secondary/10 rounded-2xl flex items-center justify-center">
+                        <span class="material-symbols-outlined text-secondary text-3xl">history_edu</span>
+                    </div>
+                    <h3 class="font-headline text-2xl font-bold">Preferencia de Palabras</h3>
+                    <p class="text-on-surface-variant leading-relaxed">Configure alertas específicas por comuna, tipo de decreto o temática. El sistema prioriza lo que es crítico para su cartera de clientes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Target Audience Section -->
+    <section id="audiencia" class="py-32 px-6 bg-surface/50">
+        <div class="max-w-7xl mx-auto space-y-16">
+            <h2 class="font-headline text-center text-3xl lg:text-4xl font-extrabold">Diseñado para la élite del <span class="text-primary">Ecosistema Inmobiliario</span></h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-px bg-white/5 rounded-[40px] overflow-hidden border border-white/5">
+                
+                <div class="p-12 bg-background space-y-8">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary text-4xl">architecture</span>
+                        <h4 class="text-2xl font-headline font-bold">Arquitectos y Planificadores</h4>
+                    </div>
+                    <p class="text-on-surface-variant leading-relaxed">Elimine el riesgo de presentar anteproyectos basados en normativas derogadas. Reciba alertas sobre cambios en Planos Reguladores e Instrumentos de Planificación Territorial (IPT) antes de que impacten su diseño.</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3 text-sm font-bold"><span class="material-symbols-outlined text-tertiary">check</span> Vigilancia de IPT y normas MINVU</li>
+                        <li class="flex items-center gap-3 text-sm font-bold"><span class="material-symbols-outlined text-tertiary">check</span> Análisis de impacto inmediato</li>
+                    </ul>
+                </div>
+
+                <div class="p-12 bg-background space-y-8 border-l border-white/5">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary text-4xl">balance</span>
+                        <h4 class="text-2xl font-headline font-bold">Abogados Urbanistas</h4>
+                    </div>
+                    <p class="text-on-surface-variant leading-relaxed">Cargue sus argumentos con la última jurisprudencia administrativa de la Contraloría y fallos del Poder Judicial. Reduzca horas de investigación manual y anticípese a las tendencias legales del sector.</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3 text-sm font-bold"><span class="material-symbols-outlined text-tertiary">check</span> Jurisprudencia administrativa CGR</li>
+                        <li class="flex items-center gap-3 text-sm font-bold"><span class="material-symbols-outlined text-tertiary">check</span> Seguimiento de Proyectos de Ley</li>
+                    </ul>
+                </div>
+
+                <div class="p-12 bg-background space-y-8 border-t border-white/5">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary text-4xl">corporate_fare</span>
+                        <h4 class="text-2xl font-headline font-bold">Inmobiliarias e Inversionistas</h4>
+                    </div>
+                    <p class="text-on-surface-variant leading-relaxed">Mitigue riesgos en su debida diligencia. Detecte cambios en la normativa ambiental (SEA) o nuevas publicaciones en el Diario Oficial que puedan alterar la plusvalía o factibilidad de sus terrenos.</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3 text-sm font-bold"><span class="material-symbols-outlined text-tertiary">check</span> Monitor de Diario Oficial y SEA</li>
+                        <li class="flex items-center gap-3 text-sm font-bold"><span class="material-symbols-outlined text-tertiary">check</span> Alertas de riesgos normativos</li>
+                    </ul>
+                </div>
+
+                <div class="p-12 bg-background space-y-8 border-t border-l border-white/5 flex flex-col justify-center items-center text-center">
+                    <h3 class="text-2xl font-black font-headline mb-4">La ley no espera. <br>Usted tampoco debería.</h3>
+                    <a href="/dashboard" class="px-8 py-4 bg-tertiary text-background rounded-2xl font-black hover:brightness-110 transition-all flex items-center gap-2">
+                        Ver Funcionamiento <span class="material-symbols-outlined">api</span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing / Closing Section -->
+    <section class="py-32 px-6">
+        <div class="max-w-5xl mx-auto rounded-[60px] bg-gradient-to-br from-primary-container/40 to-background p-16 lg:p-24 text-center border border-primary/10 relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary/20 rounded-full blur-[100px]"></div>
+            
+            <div class="relative z-10 space-y-10">
+                <h2 class="font-headline text-4xl lg:text-5xl font-black tracking-tighter">¿Listo para elevar su <br>estándar de vigilancia?</h2>
+                <p class="text-xl text-on-surface-variant max-w-2xl mx-auto">Únase a los profesionales que ya transformaron la incertidumbre normativa en certeza estratégica.</p>
+                <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                    <a href="/pricing" class="px-12 py-5 bg-white text-background rounded-2xl font-black text-xl hover-lift shadow-2xl">Ver Planes y Precios</a>
+                    <a href="/dashboard" class="px-12 py-5 glass rounded-2xl font-black text-xl hover:bg-white/5 transition-all">Explorar Versión Demo</a>
+                </div>
+                <p class="text-[10px] text-white/30 uppercase font-black tracking-[0.3em] font-headline">Versión Demo _Beta Test v2.5</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="py-12 px-6 border-t border-white/5">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="flex items-center gap-3 opacity-50">
+            <span class="font-headline font-black text-lg tracking-tight">UrbanLexTracker</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border border-white/20">© 2024</span>
+        </div>
+        <div class="flex gap-8">
+            <a href="#" class="text-xs font-bold text-on-surface-variant hover:text-white transition-colors uppercase tracking-widest">Privacidad</a>
+            <a href="#" class="text-xs font-bold text-on-surface-variant hover:text-white transition-colors uppercase tracking-widest">Términos</a>
+            <a href="mailto:soporte@urbanlex.com" class="text-xs font-bold text-on-surface-variant hover:text-white transition-colors uppercase tracking-widest">Contacto</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Simple smooth scroll for anchors
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,741 @@
+# -*- coding: utf-8 -*-
+"""
+Urban Lex Tracker — Scrapers Module
+8 bots de rastreo: Diario Oficial, Contraloría, MINVU, BCN,
+Poder Judicial, Prensa, Proyectos de Ley, IPT.
+"""
+
+import os
+import re
+import requests
+import feedparser
+import markdown
+import pytz
+from datetime import datetime
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+import database
+
+load_dotenv()
+API_KEY = os.getenv("GEMINI_API_KEY", "")
+CHILE_TZ = pytz.timezone("America/Santiago")
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+TIMEOUT = 20
+
+
+def is_item_valid(texto: str) -> bool:
+    texto_low = texto.lower()
+    # Ignorar palabras sueltas o de navegación genérica
+    if any(
+        w in texto_low
+        for w in [
+            "inicio",
+            "volver",
+            "buscar",
+            "contacto",
+            "menú",
+            "menu",
+            "faq",
+            "sitio",
+            "portal",
+            "navegar",
+        ]
+    ):
+        return False
+
+    now = datetime.now(pytz.timezone("America/Santiago"))
+
+    # Excluir explícitamente textos estáticos muy conocidos del Minvu / generales
+    if re.search(
+        r"^(ley sobre agilización|ley de aportes|circulares de la|circulares división|ley general de urbanismo|ordenanza general|normas técnicas)\b",
+        texto_low,
+    ):
+        return False
+
+    if str(now.year) in texto:
+        return True
+
+    # Evitar años pasados explícitos del 2015 al año pasado
+    prev_years = [str(now.year - i) for i in range(1, 15)]
+    pattern = r"\b(" + "|".join(prev_years) + r")\b"
+    if re.search(pattern, texto):
+        return False
+
+    # Requerimos que la normativa tenga al menos ALGÚN DATO numérico o identificador.
+    # Ej: "Ley 21.442", "Resolución 45", "DDU 460". Si sólo son letras ("Ley de algo"), suele ser menú genérico.
+    if not re.search(r"\d+", texto):
+        if not re.search(
+            r"(consulta\sciudadana|participación|proyecto\sde\s|norma\s|actualiza)",
+            texto_low,
+        ):
+            return False
+
+    if re.search(
+        r"(n°|núm|nro|modifica|promulga|fallo|rol|sentencia|proyecto|boletín|ordinario|decreto|resolución|circular|ddu)\s*\d+",
+        texto,
+        re.IGNORECASE,
+    ):
+        return True
+
+    if len(texto) < 20:
+        return False
+
+    return True
+
+
+def is_feed_today(entry) -> bool:
+    if not hasattr(entry, "published_parsed") or not entry.published_parsed:
+        return True
+    now = datetime.now(pytz.timezone("America/Santiago"))
+    return (
+        entry.published_parsed.tm_year == now.year
+        and entry.published_parsed.tm_mon == now.month
+        and entry.published_parsed.tm_mday == now.day
+    )
+
+
+def is_spanish_date_today(date_str: str) -> bool:
+    if not date_str:
+        return False
+
+    month_map = {
+        "enero": 1,
+        "febrero": 2,
+        "marzo": 3,
+        "abril": 4,
+        "mayo": 5,
+        "junio": 6,
+        "julio": 7,
+        "agosto": 8,
+        "septiembre": 9,
+        "octubre": 10,
+        "noviembre": 11,
+        "diciembre": 12,
+    }
+
+    # Format: "DD de MM de YYYY"
+    match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)\s+de\s+(\d{4})", date_str.lower())
+    if match:
+        day, month_name, year = match.groups()
+        month = month_map.get(month_name)
+        if not month:
+            return False
+
+        try:
+            date_obj = datetime(int(year), month, int(day))
+            now = datetime.now(CHILE_TZ)
+            return (
+                date_obj.year == now.year
+                and date_obj.month == now.month
+                and date_obj.day == now.day
+            )
+        except ValueError:
+            return False
+
+    # Format: "YYYY-MM-DD"
+    match = re.search(r"(\d{4})-(\d{2})-(\d{2})", date_str)
+    if match:
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            now = datetime.now(CHILE_TZ)
+            return (
+                date_obj.year == now.year
+                and date_obj.month == now.month
+                and date_obj.day == now.day
+            )
+        except ValueError:
+            return False
+
+    return False
+
+
+def hoy_chile():
+    return datetime.now(CHILE_TZ).strftime("%d de %B de %Y")
+
+
+def call_gemini(prompt: str) -> str:
+    if not API_KEY:
+        return "⚠️ API Key de Gemini no configurada."
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+        resp = requests.post(
+            url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30
+        )
+        data = resp.json()
+        if "candidates" in data and data["candidates"]:
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        return f"Sin respuesta de Gemini: {data}"
+    except Exception as e:
+        return f"Error llamando a Gemini: {e}"
+
+
+def _get_db_history(source: str, limit: int = 3) -> list:
+    """Obtiene los últimos registros de la fuente desde la BD."""
+    try:
+        conn = database.get_connection()
+        rows = conn.execute(
+            "SELECT title, url FROM alerts WHERE source = ? ORDER BY created_at DESC LIMIT ?",
+            (source, limit),
+        ).fetchall()
+        conn.close()
+        return [{"title": r["title"], "url": r["url"]} for r in rows]
+    except Exception:
+        return []
+
+
+def procesar_salida(source, items_nuevos, icon, title, limit_history=3):
+    """Lógica unificada para garantizar que si no hay novedad, se diga en Python y no dependa de Gemini."""
+    if items_nuevos:
+        texto_extraido = "\n".join(items_nuevos[:8])
+        prompt = f"""Eres experto normativo. Fecha: {hoy_chile()}. Redacta un informe Markdown sobre estos NUEVOS hallazgos.
+        Encabezamiento: **{icon} {title} ({hoy_chile()}):**
+        Usa viñetas para cada hallazgo destacando el impacto brevemente. Ignora links genéricos.
+        Hallazgos:
+        {texto_extraido}"""
+        informe_md = call_gemini(prompt)
+        return informe_md
+    else:
+        # Modo sin novedades: Generamos el header en Python para asegurar la precisión
+        historicos = _get_db_history(source, limit_history)
+        out = f"**{icon} {title} ({hoy_chile()}):**\n\n📌 *No se han detectado novedades o cambios normativos el día de hoy.*\n\n**Últimos hallazgos registrados:**\n"
+        if not historicos:
+            out += "- La base de datos histórica de esta fuente se encuentra vacía."
+            return out
+
+        texto_hist = "\n".join(
+            [f"- **[{h['title']}]({h['url']})**" for h in historicos]
+        )
+
+        # Pedimos a Gemini que limpie y explique el histórico para que se vea bien
+        prompt = f"""Eres experto normativo. Hay 0 novedades hoy. 
+        Toma esta lista de items históricos y formatea UNA breve viñeta por item explicando de qué podría tratar (muy conciso), manteniendo el formato Markdown con viñetas.
+        Items Históricos:
+        {texto_hist}"""
+        gemini_hist = call_gemini(prompt)
+        return out + gemini_hist
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 1: DIARIO OFICIAL
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_diario_oficial() -> dict:
+    source = "diario-oficial"
+    items = []
+    try:
+        url = "https://www.diariooficial.interior.gob.cl/edicionelectronica/"
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, verify=False)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        # Estrategia: Buscar todos los links PDF y subir al contenedor para hallar títulos
+        # En el DO, las normas suelen estar en una estructura de tabla o div con texto descriptivo
+        for a in soup.find_all("a", href=re.compile(r"\.pdf$")):
+            link = a.get("href", "")
+            full_link = link if link.startswith("http") else "https://www.diariooficial.interior.gob.cl" + link
+            
+            # Buscamos el texto descriptivo. Suele estar en el TD anterior o en el mismo contenedor
+            # Intentamos obtener el texto del abuelo o del padre
+            container = a.find_parent("tr") or a.find_parent("div")
+            if container:
+                title = container.get_text().strip()
+                # Limpiar texto de "Ver PDF" y ruidos de CVE
+                title = re.sub(r"Ver PDF\s*\(CVE-\d+\)", "", title, flags=re.IGNORECASE).strip()
+                title = re.sub(r"\s+", " ", title) # Colapsar espacios
+            else:
+                title = a.get_text().strip()
+
+            if not title or len(title) < 15:
+                continue
+
+            if re.search(
+                r"(Decreto|Resolución|Ley|Circular|Reglamento|MINVU|urbanismo|condominio|edificación|vivienda|municipal|permiso|construcción|plan regulador|zonificación|suelo|bienes nacionales)",
+                title,
+                re.IGNORECASE,
+            ):
+                is_new = database.save_alert(
+                    source=source,
+                    title=title[:300],
+                    url=full_link,
+                    category="normativa",
+                )
+                if is_new:
+                    items.append(f"DO: {title[:150]}... | Link: {full_link}")
+                    
+    except Exception as e:
+        database.save_scrape_history(source, 0, "error", str(e))
+        return {
+            "source": source,
+            "items": [],
+            "count": 0,
+            "report_html": f"<p>Error: {e}</p>",
+        }
+
+    informe_md = procesar_salida(source, items, "📰", "Diario Oficial")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 2: CONTRALORÍA
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_contraloria() -> dict:
+    source = "contraloria"
+    items = []
+    try:
+        # Página de jurisprudencia reciente
+        url = "https://www.contraloria.cl/web/cgr/buscar-jurisprudencia"
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        # Buscamos links que parezcan dictámenes o resoluciones
+        for a in soup.find_all("a"):
+            texto = a.get_text().strip()
+            link = a.get("href", "")
+            if not link: continue
+            
+            if re.search(
+                r"(Dictamen|Resolución|E\d+|urbanismo|municipal|edificación|permiso|plan regulador)",
+                texto,
+                re.IGNORECASE,
+            ) and is_item_valid(texto):
+                full_link = (
+                    "https://www.contraloria.cl" + link
+                    if link.startswith("/")
+                    else link
+                )
+                is_new = database.save_alert(
+                    source=source, title=texto, url=full_link, category="dictamen"
+                )
+                if is_new:
+                    items.append(f"CGR: {texto}")
+    except Exception as e:
+        database.save_scrape_history(source, 0, "error", f"Error: {e}")
+
+    informe_md = procesar_salida(source, items, "🏛️", "Contraloría General")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 3: MINVU (DDU & Normas)
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_minvu() -> dict:
+    source = "minvu"
+    items = []
+    try:
+        urls = [
+            "http://participacionciudadana.minvu.gob.cl/consultas-ciudadanas",
+            "https://www.minvu.gob.cl/elementos-tecnicos/circulares-division-de-desarrollo-urbano-ddu/circulares-generales-por-numero/",
+        ]
+        for url in urls:
+            r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, verify=False)
+            soup = BeautifulSoup(r.text, "html.parser")
+
+            tables = soup.find_all("table")
+            if tables:
+                for table in tables:
+                    rows = table.find_all("tr")
+                    found_in_table = 0
+                    for row in rows:
+                        if found_in_table >= 5:
+                            break
+
+                        cells = row.find_all("td")
+                        if not cells:
+                            continue
+
+                        date_cell = cells[-1]
+                        date_str = date_cell.get_text().strip()
+
+                        link_tag = row.find("a")
+                        if not link_tag:
+                            continue
+
+                        texto = link_tag.get_text().replace("\n", " ").strip()
+
+                        if is_item_valid(texto):
+                            found_in_table += 1
+                            if is_spanish_date_today(date_str):
+                                link = link_tag.get("href", "")
+                                if link and link.startswith("/"):
+                                    link = (
+                                        url.split("/")[0]
+                                        + "//"
+                                        + url.split("/")[2]
+                                        + link
+                                    )
+                                elif not link or not link.startswith("http"):
+                                    continue
+
+                                is_new = database.save_alert(
+                                    source=source,
+                                    title=texto,
+                                    url=link,
+                                    category="norma_tecnica",
+                                    date=date_str,
+                                )
+                                if is_new and len(items) < 3:
+                                    items.append(
+                                        f"MINVU: {texto} (Publicado: {date_str}) | Link: {link}"
+                                    )
+
+            else:
+                found_in_fallback = 0
+                for tag in soup.find_all("a"):
+                    if found_in_fallback >= 5:
+                        break
+
+                    texto = tag.get_text().replace("\n", " ").strip()
+                    if is_item_valid(texto):
+                        found_in_fallback += 1
+                        link = tag.get("href", "")
+                        if link and link.startswith("/"):
+                            link = url.split("/")[0] + "//" + url.split("/")[2] + link
+                        elif not link or not link.startswith("http"):
+                            continue
+
+                        is_new = database.save_alert(
+                            source=source,
+                            title=texto,
+                            url=link,
+                            category="norma_tecnica",
+                        )
+                        if is_new and len(items) < 3:
+                            items.append(f"MINVU: {texto} | Link: {link}")
+
+    except Exception as e:
+        database.save_scrape_history(source, 0, "error", f"Error: {e}")
+
+    informe_md = procesar_salida(
+        source, items, "🏗️", "Ministerio de Vivienda y Urbanismo"
+    )
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 4: BCN
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_bcn() -> dict:
+    source = "bcn"
+    items = []
+    try:
+        # Página de últimas publicaciones (ULP)
+        url = "https://www.bcn.cl/leychile/Consulta/portada_ulp"
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        for a in soup.find_all("a", href=re.compile(r"idNorma=")):
+            texto = a.get_text().strip()
+            link = a.get("href", "")
+            if re.search(
+                r"(Ley|Decreto|DFL|DL|urbanismo|vivienda|edificación|construcción)",
+                texto,
+                re.IGNORECASE,
+            ) and is_item_valid(texto):
+                full_link = (
+                    "https://www.bcn.cl" + link if link.startswith("/") else link
+                )
+                is_new = database.save_alert(
+                    source=source, title=texto, url=full_link, category="ley"
+                )
+                if is_new:
+                    items.append(f"BCN: {texto}")
+    except Exception as e:
+        pass
+
+    informe_md = procesar_salida(source, items, "📚", "Biblioteca del Congreso")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 5: PODER JUDICIAL
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_poder_judicial() -> dict:
+    source = "poder-judicial"
+    items = []
+    try:
+        # Portal de noticias actualizado
+        url = "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial"
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        # Buscamos los items de resultados de noticias
+        for item in soup.find_all(class_="jt-result-item"):
+            a = item.find("a")
+            if not a: continue
+            
+            texto = a.get_text().strip()
+            if re.search(
+                r"(inmobili|urbanismo|edificación|permiso|condominio|construcción|expropiación|fallo|ley)",
+                texto,
+                re.IGNORECASE,
+            ) and is_item_valid(texto):
+                link = (
+                    "https://www.pjud.cl" + a.get("href", "")
+                    if a.get("href", "").startswith("/")
+                    else a.get("href", url)
+                )
+                is_new = database.save_alert(
+                    source=source, title=texto, url=link, category="jurisprudencia"
+                )
+                if is_new:
+                    items.append(f"PJUD: {texto}")
+    except Exception as e:
+        pass
+
+    informe_md = procesar_salida(source, items, "⚖️", "Poder Judicial")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 6: PRENSA
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_prensa() -> dict:
+    source = "prensa"
+    items = []
+    rss_feeds = [
+        "https://www.emol.com/rss_html/ultimas_noticias.xml",
+        "https://www.latercera.com/rss/",
+    ]
+    for rss_url in rss_feeds:
+        try:
+            feed = feedparser.parse(rss_url)
+            for entry in feed.entries[:20]:
+                title = entry.get("title", "").strip()
+                link = entry.get("link", "")
+                if re.search(
+                    r"(urbanismo|inmobiliaria|vivienda|edificación|MINVU|condominio|plan regulador)",
+                    title,
+                    re.IGNORECASE,
+                ):
+                    if is_feed_today(entry):
+                        is_new = database.save_alert(
+                            source=source, title=title, url=link, category="prensa"
+                        )
+                        if is_new:
+                            items.append(f"PRENSA: {title} | Link: {link}")
+        except:
+            continue
+
+    informe_md = procesar_salida(source, items, "🗞️", "Noticias de Prensa")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 7: PROYECTOS DE LEY
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_proyectos_ley() -> dict:
+    source = "proyectos-ley"
+    items = []
+    try:
+        # Página de proyectos de ley actualizada
+        url = "https://www.camara.cl/legislacion/ProyectosDeLey/proyectos_ley.aspx"
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        # Buscamos en las tablas de proyectos recientes
+        for tag in soup.find_all("a", href=re.compile(r"prmID=")):
+            texto = tag.get_text().strip()
+            if re.search(
+                r"(urbanismo|vivienda|inmobili|condominio|edificación|construcción|suelo)",
+                texto,
+                re.IGNORECASE,
+            ) and is_item_valid(texto):
+                link = "https://www.camara.cl/legislacion/ProyectosDeLey/" + tag.get("href")
+                is_new = database.save_alert(
+                    source=source, title=texto, url=link, category="proyecto_ley"
+                )
+                if is_new:
+                    items.append(f"Cámara: {texto}")
+    except Exception as e:
+        pass
+
+    informe_md = procesar_salida(source, items, "🏛️", "Proyectos de Ley")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+# ════════════════════════════════════════════════════════════════
+# BOT 8: IPT
+# ════════════════════════════════════════════════════════════════
+
+
+def scrape_ipt() -> dict:
+    source = "ipt"
+    items = []
+    try:
+        # Usamos el portal de estudios del MINVU como alternativa robusta para IPT
+        url = "https://centrodeestudios.minvu.gob.cl/"
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        for tag in soup.find_all("a"):
+            texto = tag.get_text().strip()
+            if re.search(
+                r"(PRC|PRMS|PRI|Plan Regulador|zonificación|territorial|IPT)", texto, re.IGNORECASE
+            ) and is_item_valid(texto):
+                link = tag.get("href", "")
+                full_link = link if link.startswith("http") else url + link
+                is_new = database.save_alert(
+                    source=source, title=texto, url=full_link, category="ipt"
+                )
+                if is_new:
+                    items.append(f"IPT/MINVU: {texto}")
+    except:
+        pass
+
+    informe_md = procesar_salida(source, items, "🗺️", "Instrumentos de Planificación")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+        "report_md": informe_md,
+    }
+
+
+
+# BOT 9: SEA (Servicio de Evaluación Ambiental)
+# ════════════════════════════════════════════════════════════════
+
+def scrape_sea() -> dict:
+    source = "sea"
+    items = []
+    try:
+        # Portal de noticias del SEA
+        url = "https://www.sea.gob.cl/noticias"
+        r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, verify=False)
+        soup = BeautifulSoup(r.text, "html.parser")
+        
+        # En el portal de noticias del SEA, buscamos títulos y links en las filas de vistas
+        for article in soup.find_all("div", class_="views-row"):
+            link_tag = article.find("a")
+            if not link_tag:
+                continue
+                
+            title = link_tag.get_text().strip()
+            link = link_tag.get("href", "")
+            
+            if re.search(
+                r"(urbanización|inmobiliario|loteo|edificio|vivienda|centro comercial|parque|planta|residencial|plan regulador|impacto ambiental)",
+                title,
+                re.IGNORECASE,
+            ):
+                full_link = link if link.startswith("http") else "https://www.sea.gob.cl" + link
+                is_new = database.save_alert(
+                    source=source,
+                    title=title[:250],
+                    url=full_link,
+                    category="ambiental",
+                )
+                if is_new:
+                    items.append(f"SEA: {title} | Link: {full_link}")
+                    
+    except Exception as e:
+        database.save_scrape_history(source, 0, "error", str(e))
+        return {
+            "source": source,
+            "items": [],
+            "count": 0,
+            "report_html": f"<p>Error: {e}</p>",
+        }
+
+    informe_md = procesar_salida(source, items, "🌱", "Evaluación Ambiental")
+    database.save_scrape_history(source, len(items), "success")
+    return {
+        "source": source,
+        "items": items,
+        "count": len(items),
+        "report_html": markdown.markdown(informe_md),
+    }
+
+SCRAPERS = {
+    "diario-oficial": scrape_diario_oficial,
+    "contraloria": scrape_contraloria,
+    "minvu": scrape_minvu,
+    "bcn": scrape_bcn,
+    "poder-judicial": scrape_poder_judicial,
+    "prensa": scrape_prensa,
+    "proyectos-ley": scrape_proyectos_ley,
+    "ipt": scrape_ipt,
+    "sea": scrape_sea,
+}
+
+
+def run_all_scrapers() -> dict:
+    results = {}
+    total = 0
+    for name, fn in SCRAPERS.items():
+        try:
+            res = fn()
+            results[name] = res
+            total += res.get("count", 0)
+        except Exception as e:
+            database.save_scrape_history(name, 0, "error", str(e))
+    return {
+        "status": "success",
+        "total_items": total,
+        "sources": results,
+        "date": hoy_chile(),
+    }

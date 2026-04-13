@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1b273b",
+                        "background-light": "#f6f7f7",
+                        "background-dark": "#15181d",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-primary dark:bg-primary border-b border-primary/20 px-4 py-4 flex items-center justify-between shadow-lg">
+<div class="flex items-center gap-3">
+<div class="bg-slate-100/10 p-2 rounded-lg">
+<span class="material-symbols-outlined text-white">gavel</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-white">UrbanLexTracker</h1>
+</div>
+<button class="relative p-2 text-white/80 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="absolute top-2 right-2 flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+<!-- Summary Section -->
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-primary p-4 rounded-xl shadow-md border border-primary/20">
+<div class="flex items-center justify-between mb-2">
+<span class="material-symbols-outlined text-slate-300 text-lg">search</span>
+<span class="text-xs font-medium text-slate-400">HOY</span>
+</div>
+<div class="text-2xl font-bold text-white">124</div>
+<div class="text-xs text-slate-300 mt-1">Items procesados</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center justify-between mb-2 text-primary dark:text-slate-300">
+<span class="material-symbols-outlined text-lg">bolt</span>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">ACTIVIDAD</span>
+</div>
+<div class="text-2xl font-bold text-primary dark:text-white">99.9%</div>
+<div class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sistema estable</div>
+</div>
+</section>
+<!-- Recent Finds Card -->
+<section class="bg-primary/5 dark:bg-primary/20 border-2 border-dashed border-primary/30 rounded-xl p-5 relative overflow-hidden">
+<div class="flex flex-col gap-1 relative z-10">
+<h3 class="text-sm font-semibold text-primary dark:text-slate-300 uppercase tracking-wider">Hallazgos Recientes</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-black text-primary dark:text-white">08</span>
+<span class="text-sm font-medium text-primary/70 dark:text-slate-400">Nuevas alertas desde 08:00 AM</span>
+</div>
+<button class="mt-4 bg-primary text-white py-2 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 text-sm shadow-md active:scale-95 transition-transform">
+                    Ver nuevos items
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 pointer-events-none">
+<span class="material-symbols-outlined text-9xl">find_in_page</span>
+</div>
+</section>
+<!-- Real-time Status -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Disponibilidad de Fuentes</h3>
+<span class="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
+<span class="relative flex h-2 w-2">
+<span class="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+</span>
+                    Monitor en vivo
+                </span>
+</div>
+<div class="space-y-3">
+<!-- Diario Oficial -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Diario Oficial</p>
+<p class="text-xs text-slate-500">Publicaciones Legales</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div>
+<!-- Contraloría -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">search</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Contraloría</p>
+<p class="text-xs text-slate-500">Auditorías Administrativas</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div>
+<!-- MINVU -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">apartment</span>
+</div>
+<div>
+<p class="font-semibold text-sm">MINVU</p>
+<p class="text-xs text-slate-500">Vivienda y Urbanismo</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div>
+<!-- BCN -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">library_books</span>
+</div>
+<div>
+<p class="font-semibold text-sm">BCN</p>
+<p class="text-xs text-slate-500">Biblioteca del Congreso</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div>
+<!-- Poder Judicial -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">balance</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Poder Judicial</p>
+<p class="text-xs text-slate-500">Resoluciones Judiciales</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div>
+<!-- Prensa -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">newspaper</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Prensa</p>
+<p class="text-xs text-slate-500">Noticias especializadas</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div><!-- Proyectos de Ley -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Proyectos de Ley</p>
+<p class="text-xs text-slate-500">Cámara de Diputados y Senado</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div><!-- IPT -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">map</span>
+</div>
+<div>
+<p class="font-semibold text-sm">IPT</p>
+<p class="text-xs text-slate-500">Instrumentos de Planificación Territorial</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div><!-- SEA -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary dark:text-slate-300">
+<span class="material-symbols-outlined">eco</span>
+</div>
+<div>
+<p class="font-semibold text-sm">SEA</p>
+<p class="text-xs text-slate-500">Servicio de Evaluación Ambiental</p>
+</div>
+</div>
+<div class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full border border-green-200 dark:border-green-800 uppercase">
+                        Activo
+                    </div>
+</div></div>
+</section>
+<div class="h-10"></div> <!-- Spacer -->
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="sticky bottom-0 w-full border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-6 pt-2 flex justify-around items-center shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-primary dark:text-white flex items-center justify-center h-10 w-10 rounded-xl bg-primary/10 dark:bg-primary transition-colors">
+<span class="material-symbols-outlined material-symbols-fill">dashboard</span>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-wider text-primary dark:text-white">Panel</p>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-slate-400 group-hover:text-primary dark:group-hover:text-slate-300 flex items-center justify-center h-10 w-10 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<p class="text-[10px] font-medium uppercase tracking-wider text-slate-400 group-hover:text-primary dark:group-hover:text-slate-300">Alertas</p>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-slate-400 group-hover:text-primary dark:group-hover:text-slate-300 flex items-center justify-center h-10 w-10 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<p class="text-[10px] font-medium uppercase tracking-wider text-slate-400 group-hover:text-primary dark:group-hover:text-slate-300">Ajustes</p>
+</a>
+</nav>
+</body></html>

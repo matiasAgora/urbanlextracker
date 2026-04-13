@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Planes — UrbanLexTracker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b6c4ff", "background": "#0b1326", "surface": "#0f172a",
+                        "on-surface": "#dae2fd", "tertiary": "#3ce36a"
+                    },
+                    fontFamily: { "headline": ["Manrope"], "body": ["Inter"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { min-height: 100dvh; background-color: #050a14; color: #dae2fd; overflow-x: hidden; }
+        .sidebar { transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 80px; overflow: hidden; cursor: pointer; }
+        .sidebar.expanded { width: 280px; }
+        .main-content { transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 80px; }
+        .sidebar.expanded + .main-content { margin-left: 280px; }
+        .sidebar-text { opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; }
+        .sidebar.expanded .sidebar-text { opacity: 1; pointer-events: auto; }
+        
+        /* LED Border Effects */
+        .price-card { 
+            background: #0b1326; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            transition: all 0.4s ease; 
+        }
+        .price-card:hover { 
+            border-color: #b6c4ff; 
+            box-shadow: 0 0 20px -5px rgba(182, 196, 255, 0.4); 
+            transform: translateY(-8px);
+        }
+        .price-card.recommended { 
+            border-color: #3ce36a; 
+            box-shadow: 0 0 15px -5px rgba(60, 227, 106, 0.3);
+        }
+        .price-card.recommended:hover {
+            box-shadow: 0 0 25px -5px rgba(60, 227, 106, 0.5);
+        }
+    </style>
+</head>
+<body class="font-body">
+
+<aside id="sidebar" class="sidebar fixed top-0 left-0 h-full bg-[#0b1326] border-r border-white/5 z-[60] flex flex-col" onclick="expandSidebar(event)">
+    <a href="/" class="p-6 flex items-center gap-4 mb-4 hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+        <div class="bg-primary p-2 rounded-xl flex-shrink-0">
+            <span class="material-symbols-outlined text-background font-bold">gavel</span>
+        </div>
+        <span class="sidebar-text font-headline font-extrabold text-xl text-primary">UrbanLexTracker</span>
+    </a>
+    <nav class="flex-1 px-4 space-y-2 mt-4">
+        <a href="/dashboard" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="sidebar-text font-bold text-sm">Pizarrón General</span>
+        </a>
+        <a href="/alertas" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="sidebar-text font-bold text-sm">Historial de Alertas</span>
+        </a>
+    </nav>
+    <div class="px-4 py-6 border-t border-white/5 space-y-4">
+        <a href="/pricing" class="flex items-center gap-4 p-4 rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-lg shadow-primary/5" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined font-bold !fill-1">star</span>
+            <span class="sidebar-text font-bold text-sm uppercase tracking-widest">Planes y Precios</span>
+        </a>
+        <button onclick="ULT.logout();" class="w-full flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-error/10 hover:text-error transition-all">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="sidebar-text font-bold text-sm">Salir</span>
+        </button>
+    </div>
+</aside>
+
+<div class="main-content min-h-screen flex flex-col">
+    <header class="h-24 px-8 flex items-center justify-center border-b border-white/5 bg-background/50 backdrop-blur-md sticky top-0 z-40">
+        <h2 class="text-xl font-headline font-black tracking-[0.2em] uppercase opacity-40">Configuración de Membrecía</h2>
+    </header>
+
+    <main class="p-8 pb-32 space-y-20 max-w-7xl mx-auto w-full text-center">
+        <div class="space-y-4">
+            <h1 class="text-4xl lg:text-7xl font-headline font-black tracking-tighter">Planes UrbanLex<span class="text-primary italic">Tracker</span></h1>
+            <p class="text-on-surface-variant max-w-2xl mx-auto font-medium opacity-60">Fondo oscuro puro para resaltar el valor estratégico de su elección.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 pt-12 items-stretch">
+            
+            <!-- Profesional -->
+            <div class="price-card rounded-[48px] p-12 flex flex-col text-left group">
+                <div class="mb-10 flex justify-between items-start">
+                    <h3 class="text-2xl font-headline font-black">Profesional</h3>
+                    <span class="text-[10px] font-black uppercase tracking-widest opacity-30">Individual</span>
+                </div>
+                <div class="mb-10">
+                    <p class="text-6xl font-headline font-black">$29.990</p>
+                    <p class="text-xs font-bold opacity-30 mt-1 uppercase tracking-widest">Facturación Mensual</p>
+                </div>
+                <ul class="space-y-6 flex-1 text-sm font-medium opacity-60">
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-primary group-hover:shadow-[0_0_8px_#b6c4ff]"></span> Monitoreo 9 fuentes</li>
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-primary group-hover:shadow-[0_0_8px_#b6c4ff]"></span> Alertas por Email</li>
+                </ul>
+                <button class="w-full mt-10 py-5 rounded-3xl bg-white/5 border border-white/10 font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-background transition-all">Seleccionar</button>
+            </div>
+
+            <!-- Empresa (LED Border) -->
+            <div class="price-card recommended rounded-[48px] p-12 flex flex-col text-left group">
+                <div class="mb-10 flex justify-between items-start">
+                    <h3 class="text-2xl font-headline font-black text-tertiary">Empresa</h3>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-tertiary">Frecuente</span>
+                </div>
+                <div class="mb-10">
+                    <p class="text-7xl font-headline font-black">$89.990</p>
+                    <p class="text-xs font-black text-tertiary mt-2 uppercase tracking-widest italic animate-pulse">30 Días de Prueba Gratis</p>
+                </div>
+                <ul class="space-y-6 flex-1 text-sm font-bold">
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_#3ce36a]"></span> Análisis con IA avanzada</li>
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_#3ce36a]"></span> Reportes Ejecutivos PDF</li>
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_#3ce36a]"></span> 5 Cuentas concurrentes</li>
+                </ul>
+                <button class="w-full mt-10 py-5 rounded-3xl bg-tertiary text-background font-black text-[10px] uppercase tracking-widest hover:brightness-110 shadow-lg shadow-tertiary/20">Activar Membrecía</button>
+            </div>
+
+            <!-- Corporativo -->
+            <div class="price-card rounded-[48px] p-12 flex flex-col text-left group">
+                <div class="mb-10 flex justify-between items-start">
+                    <h3 class="text-2xl font-headline font-black">Corporativo</h3>
+                    <span class="text-[10px] font-black uppercase tracking-widest opacity-30">A medida</span>
+                </div>
+                <div class="mb-10">
+                    <p class="text-6xl font-headline font-black italic">Custom</p>
+                    <p class="text-xs font-bold opacity-30 mt-1 uppercase tracking-widest">Para grandes holdings</p>
+                </div>
+                <ul class="space-y-6 flex-1 text-sm font-medium opacity-60">
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-primary group-hover:shadow-[0_0_8px_#b6c4ff]"></span> Integración API Directa</li>
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-primary group-hover:shadow-[0_0_8px_#b6c4ff]"></span> Soporte Legal 24/7</li>
+                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-primary group-hover:shadow-[0_0_8px_#b6c4ff]"></span> Entrenamiento de IA propia</li>
+                </ul>
+                <button class="w-full mt-10 py-5 rounded-3xl bg-white/5 border border-white/10 font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-background transition-all">Contactar</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+let isExpanded = false;
+function expandSidebar(event) {
+    const sidebar = document.getElementById('sidebar');
+    if (!isExpanded) { sidebar.classList.add('expanded'); isExpanded = true; }
+    else if (event.target === sidebar || event.target.tagName === 'ASIDE') {
+        sidebar.classList.remove('expanded'); isExpanded = false;
+    }
+}
+</script>
+</body>
+</html>

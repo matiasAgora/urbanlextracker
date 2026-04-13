@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UrbanLexTracker - Registro Paso 2</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline": "#908f9d",
+              "on-tertiary-fixed-variant": "#00531e",
+              "secondary-fixed-dim": "#b4cad6",
+              "tertiary-fixed": "#69ff87",
+              "on-primary": "#002780",
+              "surface-container-high": "#222a3d",
+              "on-tertiary-container": "#00b048",
+              "on-secondary": "#1e333c",
+              "on-primary-fixed": "#001550",
+              "surface-bright": "#31394d",
+              "tertiary": "#3ce36a",
+              "primary-container": "#00267e",
+              "on-surface": "#dae2fd",
+              "secondary-fixed": "#cfe6f2",
+              "secondary": "#b4cad6",
+              "on-background": "#dae2fd",
+              "surface-tint": "#b6c4ff",
+              "inverse-primary": "#004ee8",
+              "inverse-on-surface": "#283044",
+              "on-tertiary": "#003912",
+              "inverse-surface": "#dae2fd",
+              "surface-container-highest": "#2d3449",
+              "on-primary-container": "#7391ff",
+              "error-container": "#93000a",
+              "on-error-container": "#ffdad6",
+              "on-error": "#690005",
+              "outline-variant": "#454652",
+              "surface-container": "#171f33",
+              "surface": "#0b1326",
+              "tertiary-container": "#003912",
+              "background": "#0b1326",
+              "on-secondary-container": "#a6bcc7",
+              "surface-dim": "#0b1326",
+              "on-primary-fixed-variant": "#003ab3",
+              "surface-container-low": "#131b2e",
+              "primary-fixed": "#dce1ff",
+              "primary-fixed-dim": "#b6c4ff",
+              "on-tertiary-fixed": "#002108",
+              "surface-container-lowest": "#060e20",
+              "secondary-container": "#374c56",
+              "error": "#ffb4ab",
+              "surface-variant": "#2d3449",
+              "primary": "#b6c4ff",
+              "tertiary-fixed-dim": "#3ce36a",
+              "on-secondary-fixed": "#071e27",
+              "on-surface-variant": "#c6c5d4",
+              "on-secondary-fixed-variant": "#354a53"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Anchor -->
+<header class="bg-[#0b1326] flex items-center justify-between px-6 h-16 w-full max-w-7xl mx-auto top-0 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#b6c4ff]">arrow_back</span>
+<h1 class="font-['Manrope'] font-bold text-lg tracking-tight text-[#b6c4ff]">UrbanLexTracker</h1>
+</div>
+<div class="hidden md:flex gap-8 items-center">
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold text-[#dae2fd]/60">Paso 2 de 3</span>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 pt-12 pb-32">
+<!-- Editorial Header Section -->
+<div class="mb-12">
+<div class="inline-flex items-center px-3 py-1 rounded-full bg-surface-container-low text-primary text-xs font-semibold tracking-wider uppercase mb-6">
+                Configuración de Escaneo
+            </div>
+<h2 class="font-headline font-extrabold tracking-tight text-on-surface mb-4 leading-tight text-4xl">Selecciona Fuentes de Monitoreo</h2>
+<p class="font-body text-on-surface-variant text-lg max-w-2xl leading-relaxed">
+                Selecciona los sitios oficiales que deseas que UrbanLex revise diariamente. Nuestra IA procesará cada actualización para notificarte solo lo relevante.
+            </p>
+</div>
+<!-- Monitoring Sources Grid (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Diario Oficial -->
+<label class="group relative cursor-pointer">
+<input checked="" class="peer hidden" type="checkbox"/>
+<div class="h-full p-6 rounded-xl bg-surface-container border border-transparent transition-all duration-300 peer-checked:bg-primary-container/20 peer-checked:border-primary/30 hover:bg-surface-container-highest">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="gavel">gavel</span>
+</div>
+<div class="opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Diario Oficial</h3>
+<p class="text-sm text-on-surface-variant leading-snug">Leyes, decretos y reglamentos de alcance nacional.</p>
+</div>
+</label>
+<!-- Contraloría -->
+<label class="group relative cursor-pointer">
+<input class="peer hidden" type="checkbox"/>
+<div class="h-full p-6 rounded-xl bg-surface-container border border-transparent transition-all duration-300 peer-checked:bg-primary-container/20 peer-checked:border-primary/30 hover:bg-surface-container-highest">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="search">search</span>
+</div>
+<div class="opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Contraloría</h3>
+<p class="text-sm text-on-surface-variant leading-snug">Dictámenes y resoluciones de legalidad administrativa.</p>
+</div>
+</label>
+<!-- MINVU -->
+<label class="group relative cursor-pointer">
+<input checked="" class="peer hidden" type="checkbox"/>
+<div class="h-full p-6 rounded-xl bg-surface-container border border-transparent transition-all duration-300 peer-checked:bg-primary-container/20 peer-checked:border-primary/30 hover:bg-surface-container-highest">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="domain">domain</span>
+</div>
+<div class="opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">MINVU</h3>
+<p class="text-sm text-on-surface-variant leading-snug">Instrucciones y circulares de vivienda y urbanismo.</p>
+</div>
+</label>
+<!-- SEA -->
+<label class="group relative cursor-pointer">
+<input class="peer hidden" type="checkbox"/>
+<div class="h-full p-6 rounded-xl bg-surface-container border border-transparent transition-all duration-300 peer-checked:bg-primary-container/20 peer-checked:border-primary/30 hover:bg-surface-container-highest">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="eco">eco</span>
+</div>
+<div class="opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">SEA</h3>
+<p class="text-sm text-on-surface-variant leading-snug">Procesos de Evaluación de Impacto Ambiental.</p>
+</div>
+</label>
+<!-- BCN -->
+<label class="group relative cursor-pointer">
+<input checked="" class="peer hidden" type="checkbox"/>
+<div class="h-full p-6 rounded-xl bg-surface-container border border-transparent transition-all duration-300 peer-checked:bg-primary-container/20 peer-checked:border-primary/30 hover:bg-surface-container-highest">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="menu_book">menu_book</span>
+</div>
+<div class="opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">BCN</h3>
+<p class="text-sm text-on-surface-variant leading-snug">Base de datos de normas legales promulgadas.</p>
+</div>
+</label>
+<!-- Poder Judicial -->
+<label class="group relative cursor-pointer">
+<input class="peer hidden" type="checkbox"/>
+<div class="h-full p-6 rounded-xl bg-surface-container border border-transparent transition-all duration-300 peer-checked:bg-primary-container/20 peer-checked:border-primary/30 hover:bg-surface-container-highest">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" data-icon="balance">balance</span>
+</div>
+<div class="opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-2">Poder Judicial</h3>
+<p class="text-sm text-on-surface-variant leading-snug">Sentencias y fallos relevantes de cortes superiores.</p>
+</div>
+</label>
+</div>
+<!-- Secondary Information Card -->
+<div class="mt-12 bg-surface-container-low p-8 rounded-2xl flex flex-col md:flex-row items-center gap-8 border-l-4 border-primary">
+<div class="flex-1">
+<h4 class="font-headline text-xl font-bold mb-2">Monitoreo 24/7 con Inteligencia Artificial</h4>
+<p class="text-on-surface-variant text-sm">Nuestro motor de búsqueda avanzada escanea estas fuentes cada hora. Utilizamos procesamiento de lenguaje natural para categorizar el impacto real en tus activos inmobiliarios.</p>
+</div>
+<div class="relative w-full md:w-64 h-32 rounded-xl overflow-hidden shadow-2xl">
+<div class="absolute inset-0 bg-gradient-to-tr from-primary-container to-transparent opacity-40 z-10"></div>
+<img alt="Tecnología de escaneo" class="w-full h-full object-cover" data-alt="Close-up of a high-tech digital circuit board with glowing blue neon data pathways in a dark futuristic server room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTrUn8TsIdyMQ9O-KIAgwyOyAVMiTGvGiJDpawSfe8mIf1CPphC5QPlwjRqmpBgTS1HrWu3to7-LUYSaFAKOnQ4gna-kL0dGd56OzCF1NVyt4Ls917OoQCtbe72VFcYQ2uUjjcrijl8pB9HIpn079HJqzM1Y8hRuoTJJAERqYTQaBRXGbKFosZ7Z0MhyR4pb_LnFLLFsbyVqUkrJ9vx33V1kAo9uVFXzjLojvIgAMo17E7RszcNva_r3T7JYt--pFGtgZR2W9ACVI"/>
+</div>
+</div>
+</main>
+<!-- Bottom Action Shell -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-20 bg-[#0b1326]/80 backdrop-blur-xl shadow-[0_-4px_20px_rgba(218,226,253,0.06)] border-t border-[#454652]/15">
+<div class="max-w-7xl mx-auto w-full flex justify-between items-center px-6">
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl font-['Inter'] text-sm font-semibold text-[#dae2fd]/60 hover:text-[#b6c4ff] transition-colors active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_left">chevron_left</span>
+                Anterior
+            </button>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex gap-1.5 mr-4">
+<div class="w-2 h-2 rounded-full bg-primary/30"></div>
+<div class="w-8 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary/30"></div>
+</div>
+<button class="bg-gradient-to-r from-[#b6c4ff] to-[#00267e] text-[#002780] px-8 py-3 rounded-xl font-['Inter'] text-sm font-bold shadow-lg hover:shadow-primary/20 transition-all duration-300 active:scale-95">
+                    Siguiente Paso
+                </button>
+</div>
+</div>
+</footer>
+<!-- Bottom Nav Bar Logic (Contextual Suppression Filter Applied: Suppression inactive here as it's a primary setup flow, but styled for progress) -->
+<nav class="md:hidden fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] glass-effect bg-surface-container/90 rounded-2xl p-4 flex justify-between items-center z-40 border border-outline-variant/10 shadow-2xl">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="stepper" style="font-variation-settings: 'FILL' 1;">steppers</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-bold">Progress</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#dae2fd]/40">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-bold">Help</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#dae2fd]/40">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-bold">Cancel</span>
+</div>
+</nav>
+</body></html>

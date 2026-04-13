@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UrbanLexTracker - Registro Paso 3</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline": "#908f9d",
+              "on-tertiary-fixed-variant": "#00531e",
+              "secondary-fixed-dim": "#b4cad6",
+              "tertiary-fixed": "#69ff87",
+              "on-primary": "#002780",
+              "surface-container-high": "#222a3d",
+              "on-tertiary-container": "#00b048",
+              "on-secondary": "#1e333c",
+              "on-primary-fixed": "#001550",
+              "surface-bright": "#31394d",
+              "tertiary": "#3ce36a",
+              "primary-container": "#00267e",
+              "on-surface": "#dae2fd",
+              "secondary-fixed": "#cfe6f2",
+              "secondary": "#b4cad6",
+              "on-background": "#dae2fd",
+              "surface-tint": "#b6c4ff",
+              "inverse-primary": "#004ee8",
+              "inverse-on-surface": "#283044",
+              "on-tertiary": "#003912",
+              "inverse-surface": "#dae2fd",
+              "surface-container-highest": "#2d3449",
+              "on-primary-container": "#7391ff",
+              "error-container": "#93000a",
+              "on-error-container": "#ffdad6",
+              "on-error": "#690005",
+              "outline-variant": "#454652",
+              "surface-container": "#171f33",
+              "surface": "#0b1326",
+              "tertiary-container": "#003912",
+              "background": "#0b1326",
+              "on-secondary-container": "#a6bcc7",
+              "surface-dim": "#0b1326",
+              "on-primary-fixed-variant": "#003ab3",
+              "surface-container-low": "#131b2e",
+              "primary-fixed": "#dce1ff",
+              "primary-fixed-dim": "#b6c4ff",
+              "on-tertiary-fixed": "#002108",
+              "surface-container-lowest": "#060e20",
+              "secondary-container": "#374c56",
+              "error": "#ffb4ab",
+              "surface-variant": "#2d3449",
+              "primary": "#b6c4ff",
+              "tertiary-fixed-dim": "#3ce36a",
+              "on-secondary-fixed": "#071e27",
+              "on-surface-variant": "#c6c5d4",
+              "on-secondary-fixed-variant": "#354a53"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      body { background-color: #0b1326; color: #dae2fd; font-family: 'Inter', sans-serif; }
+      .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+      .glass-panel { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+      .primary-gradient { background: linear-gradient(135deg, #b6c4ff 0%, #00267e 100%); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#0b1326] sticky top-0 z-50 w-full shadow-none border-b border-outline-variant/15">
+<div class="flex items-center justify-between px-6 h-16 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="text-[#b6c4ff] hover:bg-[#171f33] transition-colors duration-300 p-2 rounded-full active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-['Manrope'] font-bold text-lg tracking-tight text-[#b6c4ff]">UrbanLexTracker</h1>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold text-[#b6c4ff]">Paso 3 de 3</span>
+</div>
+</div>
+</header>
+<main class="flex-grow flex items-center justify-center px-4 py-12 md:py-20 relative overflow-hidden">
+<!-- Background decorative elements -->
+<div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+<div class="absolute bottom-0 right-1/4 w-64 h-64 bg-tertiary/5 rounded-full blur-[80px] pointer-events-none"></div>
+<div class="w-full max-w-2xl">
+<!-- Header Section -->
+<div class="mb-12 text-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-high mb-6">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-xs font-semibold tracking-widest text-primary uppercase">Configuración Final</span>
+</div>
+<h2 class="font-headline font-extrabold text-4xl md:text-5xl text-on-surface mb-4 tracking-tight">Alertas y Plan</h2>
+<p class="font-body text-on-surface-variant text-lg max-w-md mx-auto">Configura cómo y cuándo quieres recibir tus informes.</p>
+</div>
+<div class="space-y-6">
+<!-- Bento Grid Layout for Settings -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Notification Card -->
+<div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
+<div class="flex items-start justify-between mb-8">
+<div class="bg-primary/10 p-3 rounded-xl">
+<span class="material-symbols-outlined text-primary" data-icon="mail">mail</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<h3 class="font-headline font-bold text-xl text-on-surface mb-2">Alertas por email</h3>
+<p class="font-body text-sm text-on-surface-variant">Recibirás un resumen detallado de todas las actualizaciones directamente en tu buzón.</p>
+</div>
+<!-- Frequency Card -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-transparent hover:border-primary/20 transition-all">
+<div class="flex items-center gap-3 mb-6">
+<div class="bg-tertiary/10 p-2 rounded-lg">
+<span class="material-symbols-outlined text-tertiary" data-icon="schedule">schedule</span>
+</div>
+<span class="font-label font-semibold text-sm text-on-surface">Frecuencia de informes</span>
+</div>
+<div class="space-y-3">
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-surface-container border border-outline-variant/15 text-left group">
+<span class="font-body text-sm text-on-surface">Diario (8:00 AM)</span>
+<span class="material-symbols-outlined text-primary text-sm opacity-100" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</button>
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest/50 border border-transparent hover:bg-surface-container transition-colors text-left group">
+<span class="font-body text-sm text-on-surface-variant">Semanal</span>
+<span class="material-symbols-outlined text-outline-variant text-sm opacity-0 group-hover:opacity-100 transition-opacity" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</button>
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest/50 border border-transparent hover:bg-surface-container transition-colors text-left group">
+<span class="font-body text-sm text-on-surface-variant">Cada vez que lo solicite</span>
+<span class="material-symbols-outlined text-outline-variant text-sm opacity-0 group-hover:opacity-100 transition-opacity" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</button>
+</div>
+</div>
+<!-- Plan Summary Card (Full Width in Grid) -->
+<div class="md:col-span-2 bg-surface-container p-8 rounded-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 border border-primary/10">
+<div class="flex-shrink-0 w-full md:w-auto">
+<div class="bg-surface-container-highest p-6 rounded-2xl border border-outline-variant/20 shadow-xl relative group">
+<div class="absolute -top-3 -right-3 bg-tertiary text-on-tertiary font-bold text-[10px] px-3 py-1 rounded-full uppercase tracking-tighter">Seleccionado</div>
+<h4 class="font-headline font-bold text-on-primary-container mb-1">Plan Profesional</h4>
+<div class="flex items-baseline gap-1 mb-4">
+<span class="text-3xl font-extrabold text-on-surface">$29</span>
+<span class="text-on-surface-variant text-sm">/mo</span>
+</div>
+<ul class="space-y-2">
+<li class="flex items-center gap-2 text-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px] text-tertiary" data-icon="done">done</span> Monitoreo Ilimitado
+                                    </li>
+<li class="flex items-center gap-2 text-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px] text-tertiary" data-icon="done">done</span> Soporte Prioritario
+                                    </li>
+</ul>
+</div>
+</div>
+<div class="flex-grow text-center md:text-left">
+<h4 class="font-headline font-bold text-xl text-on-surface mb-2">Resumen de suscripción</h4>
+<p class="font-body text-sm text-on-surface-variant mb-4 leading-relaxed">Estás a un paso de acceder a la plataforma de monitoreo legal más avanzada del mercado.</p>
+<div class="inline-flex items-center gap-2 text-xs text-primary font-medium">
+<span class="material-symbols-outlined text-sm" data-icon="info">info</span>
+<span>Puedes cambiar tu plan en cualquier momento desde la configuración.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="flex flex-col md:flex-row gap-4 pt-8">
+<button class="flex-1 px-8 h-14 rounded-xl font-headline font-bold text-on-surface bg-surface-container-high hover:bg-surface-container-highest transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_left">chevron_left</span>
+                        Anterior
+                    </button>
+<button class="flex-[2] px-8 h-14 rounded-xl font-headline font-bold text-on-primary primary-gradient shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        Finalizar Registro
+                        <span class="material-symbols-outlined text-lg" data-icon="rocket_launch">rocket_launch</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-[#0b1326]/80 backdrop-blur-xl border-t border-[#454652]/15 shadow-[0_-4px_20px_rgba(218,226,253,0.06)] h-20 px-4 pb-safe flex justify-around items-center">
+<div class="flex flex-col items-center justify-center text-[#dae2fd]/40 hover:text-[#b6c4ff] transition-colors">
+<span class="material-symbols-outlined" data-icon="stepper">steppers</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold mt-1">Progress</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#dae2fd]/40 hover:text-[#b6c4ff] transition-colors">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold mt-1">Help</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#dae2fd]/40 hover:text-[#b6c4ff] transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold mt-1">Cancel</span>
+</div>
+</nav>
+<!-- Background Image Asset (Abstract Precision) -->
+<div class="fixed inset-0 -z-10 opacity-20 pointer-events-none">
+<img alt="" class="w-full h-full object-cover mix-blend-overlay" data-alt="abstract tech patterns with glowing blue lines and data structures on a dark background representing digital security and precision" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzeOJ7NgD4ztudZRZBk0ZQvzzU1LdVmCPHl5fSV2hU6vf64hEt__ywIyO1AaO4ZLlRU2DA2IP2o7F0Q8uczLeXM6LN8fvufOcy0XnaIOkMS_HvnTKqz27xRtR3xN8pYTRknHWG0UNwHRid4-7JWWpzzfWVzeAt-2KnoGbPGjTF7KqVHshr0Zq7KeuIAwAfNXHKSQ73F6gFsBBkILFUMf-biHK6sqZ8GjDig3hKuOac5OVov--w8aAllDZKBQ1FfzzNempsuSC1xy0"/>
+</div>
+</body></html>

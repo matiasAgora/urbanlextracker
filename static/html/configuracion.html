@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Configuración — UrbanLexTracker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-low": "#131b2e", "tertiary": "#3ce36a", "primary": "#b6c4ff",
+                        "surface-container": "#171f33", "on-surface": "#dae2fd", "background": "#0b1326",
+                        "outline-variant": "#454652", "surface": "#0b1326", "secondary": "#b4cad6"
+                    },
+                    fontFamily: { "headline": ["Manrope"], "body": ["Inter"] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { min-height: 100dvh; background-color: #0b1326; overflow-x: hidden; }
+        .sidebar { transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 80px; overflow: hidden; cursor: pointer; }
+        .sidebar.expanded { width: 280px; }
+        .main-content { transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 80px; }
+        .sidebar.expanded + .main-content { margin-left: 280px; }
+        .sidebar-text { opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; }
+        .sidebar.expanded .sidebar-text { opacity: 1; pointer-events: auto; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body text-on-surface">
+
+<!-- Sidebar Navigation -->
+<aside id="sidebar" class="sidebar fixed top-0 left-0 h-full bg-surface-container border-r border-white/5 z-[60] flex flex-col group" onclick="expandSidebar(event)">
+    <a href="/" class="p-6 flex items-center gap-4 mb-4 hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+        <div class="bg-primary p-2 rounded-xl flex-shrink-0">
+            <span class="material-symbols-outlined text-background font-bold">gavel</span>
+        </div>
+        <span class="sidebar-text font-headline font-extrabold text-xl text-primary">UrbanLexTracker</span>
+    </a>
+    
+    <nav class="flex-1 px-4 space-y-2 mt-4">
+        <a href="/dashboard" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="sidebar-text font-bold text-sm">Pizarrón General</span>
+        </a>
+        <a href="/alertas" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="sidebar-text font-bold text-sm">Historial de Alertas</span>
+        </a>
+        <a href="/configuracion" class="flex items-center gap-4 p-3 rounded-xl bg-primary/10 text-primary transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined !fill-1">settings</span>
+            <span class="sidebar-text font-bold text-sm">Configuración</span>
+        </a>
+    </nav>
+    
+    <div class="px-4 py-6 border-t border-white/5 space-y-4">
+        <a href="/pricing" class="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-primary/20 to-transparent border border-primary/20 text-primary hover:from-primary/30 transition-all shadow-lg shadow-primary/5" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined font-bold">star</span>
+            <span class="sidebar-text font-bold text-sm uppercase tracking-widest">Planes y Precios</span>
+        </a>
+        <button onclick="ULT.logout(); event.stopPropagation();" class="w-full flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-error/10 hover:text-error transition-all">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="sidebar-text font-bold text-sm">Cerrar Sesión</span>
+        </button>
+    </div>
+</aside>
+
+<div class="main-content min-h-screen flex flex-col">
+    <header class="h-24 px-8 flex items-center justify-between border-b border-white/5 bg-background/50 backdrop-blur-md sticky top-0 z-40">
+        <h2 class="text-2xl font-headline font-black tracking-tight">Preferencias Inteligentes</h2>
+        <button onclick="saveConfig()" class="bg-primary text-background px-8 py-2.5 rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20">
+            Guardar Cambios
+        </button>
+    </header>
+
+    <main class="flex-1 p-8 max-w-4xl mx-auto w-full space-y-12">
+        <!-- Notificaciones -->
+        <section class="space-y-6">
+            <h3 class="text-lg font-headline font-black flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary">mail</span> Alertas por Email
+            </h3>
+            <div class="glass p-10 rounded-[40px] border border-white/5 space-y-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-black text-on-surface">Canal de Notificación Activo</p>
+                        <p class="text-xs text-on-surface-variant font-medium">Recibe hallazgos críticos directo en tu bandeja.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer">
+                        <div class="w-14 h-7 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-tertiary"></div>
+                    </label>
+                </div>
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Dirección de Enlace</label>
+                    <input type="email" id="user-email" class="w-full bg-background/50 border border-white/5 rounded-2xl px-6 py-4 text-on-surface font-black focus:outline-none focus:border-primary/50 transition-all">
+                </div>
+            </div>
+        </section>
+
+        <!-- Keywords -->
+        <section class="space-y-6">
+            <h3 class="text-lg font-headline font-black flex items-center gap-3">
+                <span class="material-symbols-outlined text-secondary">label_important</span> Filtros Normativos
+            </h3>
+            <div class="glass p-10 rounded-[40px] border border-white/5 space-y-4">
+                <p class="text-sm text-on-surface-variant font-medium">Define las palabras clave que activarán alertas inteligentes de alta prioridad.</p>
+                <textarea id="keywords-input" rows="4" class="w-full bg-background/50 border border-white/5 rounded-[32px] px-8 py-8 text-on-surface focus:outline-none focus:border-secondary/50 transition-all font-mono text-sm leading-relaxed"></textarea>
+            </div>
+        </section>
+
+        <!-- Perfil -->
+        <section class="space-y-6 pb-20">
+            <h3 class="text-lg font-headline font-black flex items-center gap-3">
+                <span class="material-symbols-outlined text-tertiary">engineering</span> Perfil del Revisor
+            </h3>
+            <div class="glass p-10 rounded-[40px] border border-white/5 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Nombre Completo</label>
+                    <input type="text" id="user-name" class="w-full bg-background/50 border border-white/5 rounded-2xl px-6 py-4 text-on-surface font-bold focus:outline-none focus:border-tertiary/50 transition-all">
+                </div>
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Especialidad Jurídica</label>
+                    <input type="text" id="user-prof" class="w-full bg-background/50 border border-white/5 rounded-2xl px-6 py-4 text-on-surface font-bold focus:outline-none focus:border-tertiary/50 transition-all">
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+let isExpanded = false;
+function expandSidebar(event) {
+    const sidebar = document.getElementById('sidebar');
+    if (!isExpanded) { sidebar.classList.add('expanded'); isExpanded = true; }
+    else if (event.target === sidebar || event.target.tagName === 'ASIDE') {
+        sidebar.classList.remove('expanded'); isExpanded = false;
+    }
+}
+
+async function startApp() {
+    try {
+        const user = await auth.require_auth_ui();
+        document.getElementById('user-email').value = user.email;
+        document.getElementById('user-name').value = user.nombre || '';
+        document.getElementById('user-prof').value = user.profesion || '';
+        document.getElementById('keywords-input').value = user.keywords || 'urbanismo, decreto, ley general, vivienda';
+    } catch(e) {}
+}
+
+async function saveConfig() {
+    ULT.showToast("Sincronizando preferencias...", "info");
+    // Mock save
+    setTimeout(() => {
+        ULT.showToast("Certeza estratégica actualizada", "success");
+    }, 1500);
+}
+
+startApp();
+</script>
+</body>
+</html>

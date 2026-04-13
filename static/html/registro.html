@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UrbanLexTracker — Crear Cuenta</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      colors: {
+        "surface-container-low": "#131b2e", "tertiary": "#3ce36a",
+        "surface-container": "#171f33", "on-primary": "#002780",
+        "on-surface-variant": "#c6c5d4", "primary": "#b6c4ff",
+        "surface-container-high": "#222a3d", "on-surface": "#dae2fd",
+        "surface-container-lowest": "#060e20", "background": "#0b1326",
+        "primary-container": "#00267e", "outline-variant": "#454652", "surface": "#0b1326",
+      },
+      fontFamily: { "headline": ["Manrope"], "body": ["Inter"] },
+      borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+    }}
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  body { min-height: 100dvh; background-color: #0b1326; color: #dae2fd; }
+  .input-field {
+    width: 100%; background: #060e20; border: 1px solid #454652;
+    border-radius: 12px; padding: 13px 16px; color: #dae2fd; font-size: 15px;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s; font-family: Inter,sans-serif;
+  }
+  .input-field:focus { border-color: #b6c4ff; box-shadow: 0 0 0 3px rgba(182,196,255,0.12); }
+  .input-field::placeholder { color: #454652; }
+</style>
+</head>
+<body class="font-body">
+<script src="/static/js/auth.js"></script>
+<script>document.addEventListener("DOMContentLoaded", () => { ULT.redirectIfAuth(); });</script>
+
+<main class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+  <div class="absolute top-0 left-0 w-[40%] h-[40%] bg-blue-900/15 blur-[130px] rounded-full pointer-events-none"></div>
+  <div class="absolute bottom-0 right-0 w-[30%] h-[30%] bg-green-900/10 blur-[100px] rounded-full pointer-events-none"></div>
+
+  <div class="w-full max-w-lg z-10">
+    <!-- Brand -->
+    <div class="flex items-center gap-3 mb-8">
+      <span class="material-symbols-outlined text-primary text-3xl">gavel</span>
+      <span class="font-headline font-extrabold text-2xl text-primary tracking-tighter">UrbanLexTracker</span>
+    </div>
+
+    <div class="mb-6">
+      <h1 class="font-headline font-extrabold text-3xl text-on-surface tracking-tight mb-2">Crear Cuenta</h1>
+      <p class="text-on-surface-variant text-sm">Únete a la plataforma de monitoreo normativo urbano.</p>
+    </div>
+
+    <div class="bg-surface-container-low rounded-2xl p-8 border border-white/5 shadow-2xl">
+      <form id="register-form" class="space-y-4">
+        <!-- Nombre -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider">Nombre Completo</label>
+          <input id="nombre" type="text" class="input-field" placeholder="Ej. Matías González" required/>
+        </div>
+
+        <!-- Profesión -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider">Profesión</label>
+          <select id="profesion" class="input-field" style="appearance:none; cursor:pointer;">
+            <option value="Arquitecto/a">Arquitecto/a</option>
+            <option value="Desarrollador/a">Desarrollador/a Inmobiliario</option>
+            <option value="Abogado/a Urbanista">Abogado/a Urbanista</option>
+            <option value="Consultor Inmobiliario">Consultor Inmobiliario</option>
+            <option value="Ingeniería">Ingeniería</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+
+        <!-- Email -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider">Correo electrónico</label>
+          <input id="email" type="email" class="input-field" placeholder="tu@correo.cl" required/>
+        </div>
+
+        <!-- Password -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-primary uppercase tracking-wider">Contraseña</label>
+          <input id="password" type="password" class="input-field" placeholder="Mínimo 6 caracteres" required minlength="6"/>
+        </div>
+
+        <!-- Error -->
+        <div id="error-msg" class="hidden bg-red-900/30 border border-red-700/50 text-red-300 text-sm rounded-xl px-4 py-3"></div>
+
+        <!-- Submit -->
+        <button id="submit-btn" type="submit"
+          class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all mt-2">
+          Crear mi cuenta
+          <span class="material-symbols-outlined">person_add</span>
+        </button>
+      </form>
+
+      <div class="mt-5 text-center text-sm text-on-surface-variant">
+        ¿Ya tienes cuenta? <a href="/login" class="text-primary font-semibold hover:underline">Inicia sesión</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const form = document.getElementById("register-form");
+  const errorMsg = document.getElementById("error-msg");
+  const submitBtn = document.getElementById("submit-btn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg.classList.add("hidden");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span style="display:inline-block" class="animate-spin mr-2">⟳</span> Creando cuenta...`;
+
+    try {
+      await ULT.register(
+        document.getElementById("email").value.trim(),
+        document.getElementById("password").value,
+        document.getElementById("nombre").value.trim(),
+        document.getElementById("profesion").value
+      );
+      submitBtn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> ¡Cuenta creada!`;
+      submitBtn.classList.replace("from-primary", "from-green-700");
+      setTimeout(() => { window.location.href = "/dashboard"; }, 700);
+    } catch (err) {
+      errorMsg.textContent = err.message;
+      errorMsg.classList.remove("hidden");
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `Crear mi cuenta <span class="material-symbols-outlined">person_add</span>`;
+    }
+  });
+</script>
+</body>
+</html>
