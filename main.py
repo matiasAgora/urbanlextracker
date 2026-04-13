@@ -234,41 +234,43 @@ def api_dashboard_summary(request: Request):
     auth.require_auth(request)
     sources_status = database.get_sources_status()
 
-    # Map sources and filter to the main 8
-    main_sources = [
-        "Diario Oficial",
-        "Contraloría",
-        "MINVU",
-        "BCN",
-        "Poder Judicial",
-        "Prensa",
-        "Proyectos de Ley",
-        "IPT",
+    # Define the 8 main sources by their IDs to avoid encoding issues
+    main_source_ids = [
+        "diario-oficial",
+        "contraloria",
+        "minvu",
+        "bcn",
+        "poder-judicial",
+        "prensa",
+        "proyectos-ley",
+        "ipt",
     ]
 
     results = []
-    for source_name in main_sources:
+    for source_id in main_source_ids:
         # Find status from DB
         status_entry = next(
-            (s for s in sources_status if s["display_name"] == source_name), None
+            (s for s in sources_status if s["source"] == source_id), None
         )
 
         # Get last finding
-        last_alert = database.get_alerts(
-            source=status_entry["source"] if status_entry else source_name, limit=1
-        )
+        last_alert = database.get_alerts(source=source_id, limit=1)
         last_finding = (
             last_alert[0]["title"] if last_alert else "Sin hallazgos recientes."
         )
 
+        display_name = (
+            status_entry["display_name"]
+            if status_entry
+            else source_id.replace("-", " ").title()
+        )
+
         results.append(
             {
-                "name": source_name,
-                "source_id": status_entry["source"]
-                if status_entry
-                else source_name.lower().replace(" ", "-"),
+                "name": display_name,
+                "source_id": source_id,
                 "status": status_entry["status"] if status_entry else "Offline",
-                "last_sync": status_entry["last_run"] if status_entry else "---",
+                "last_sync": status_entry["last_scrape"] if status_entry else "---",
                 "items_found_today": status_entry["items_found"] if status_entry else 0,
                 "last_finding": last_finding,
             }

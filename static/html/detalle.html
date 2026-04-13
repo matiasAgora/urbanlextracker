@@ -178,7 +178,7 @@ function renderDetail(data) {
     
     const meta = data.metadata;
     if (meta) {
-        document.getElementById('bot-last-sync').textContent = `Última revisión: ${meta.last_run || '---'}`;
+        document.getElementById('bot-last-sync').textContent = `Última revisión: ${meta.last_scrape || '---'}`;
         document.getElementById('count-today').textContent = meta.items_found || 0;
         document.getElementById('bot-status-text').textContent = `Sincronización periódica activa • ${meta.status}`;
     }
