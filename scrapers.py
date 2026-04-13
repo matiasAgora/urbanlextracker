@@ -8,6 +8,7 @@ Poder Judicial, Prensa, Proyectos de Ley, IPT.
 import os
 import re
 import requests
+import urllib3
 import feedparser
 import markdown
 import pytz
@@ -16,6 +17,9 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 import database
+
+# Suppress unverified HTTPS warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY", "")
@@ -228,21 +232,27 @@ def scrape_diario_oficial() -> dict:
         url = "https://www.diariooficial.interior.gob.cl/edicionelectronica/"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, verify=False)
         soup = BeautifulSoup(r.text, "html.parser")
-        
+
         # Estrategia: Buscar todos los links PDF y subir al contenedor para hallar títulos
         # En el DO, las normas suelen estar en una estructura de tabla o div con texto descriptivo
         for a in soup.find_all("a", href=re.compile(r"\.pdf$")):
             link = a.get("href", "")
-            full_link = link if link.startswith("http") else "https://www.diariooficial.interior.gob.cl" + link
-            
+            full_link = (
+                link
+                if link.startswith("http")
+                else "https://www.diariooficial.interior.gob.cl" + link
+            )
+
             # Buscamos el texto descriptivo. Suele estar en el TD anterior o en el mismo contenedor
             # Intentamos obtener el texto del abuelo o del padre
             container = a.find_parent("tr") or a.find_parent("div")
             if container:
                 title = container.get_text().strip()
                 # Limpiar texto de "Ver PDF" y ruidos de CVE
-                title = re.sub(r"Ver PDF\s*\(CVE-\d+\)", "", title, flags=re.IGNORECASE).strip()
-                title = re.sub(r"\s+", " ", title) # Colapsar espacios
+                title = re.sub(
+                    r"Ver PDF\s*\(CVE-\d+\)", "", title, flags=re.IGNORECASE
+                ).strip()
+                title = re.sub(r"\s+", " ", title)  # Colapsar espacios
             else:
                 title = a.get_text().strip()
 
@@ -262,7 +272,7 @@ def scrape_diario_oficial() -> dict:
                 )
                 if is_new:
                     items.append(f"DO: {title[:150]}... | Link: {full_link}")
-                    
+
     except Exception as e:
         database.save_scrape_history(source, 0, "error", str(e))
         return {
@@ -296,13 +306,14 @@ def scrape_contraloria() -> dict:
         url = "https://www.contraloria.cl/web/cgr/buscar-jurisprudencia"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         soup = BeautifulSoup(r.text, "html.parser")
-        
+
         # Buscamos links que parezcan dictámenes o resoluciones
         for a in soup.find_all("a"):
             texto = a.get_text().strip()
             link = a.get("href", "")
-            if not link: continue
-            
+            if not link:
+                continue
+
             if re.search(
                 r"(Dictamen|Resolución|E\d+|urbanismo|municipal|edificación|permiso|plan regulador)",
                 texto,
@@ -450,7 +461,7 @@ def scrape_bcn() -> dict:
         url = "https://www.bcn.cl/leychile/Consulta/portada_ulp"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         soup = BeautifulSoup(r.text, "html.parser")
-        
+
         for a in soup.find_all("a", href=re.compile(r"idNorma=")):
             texto = a.get_text().strip()
             link = a.get("href", "")
@@ -494,12 +505,13 @@ def scrape_poder_judicial() -> dict:
         url = "https://www.pjud.cl/prensa-y-comunicaciones/noticias-del-poder-judicial"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         soup = BeautifulSoup(r.text, "html.parser")
-        
+
         # Buscamos los items de resultados de noticias
         for item in soup.find_all(class_="jt-result-item"):
             a = item.find("a")
-            if not a: continue
-            
+            if not a:
+                continue
+
             texto = a.get_text().strip()
             if re.search(
                 r"(inmobili|urbanismo|edificación|permiso|condominio|construcción|expropiación|fallo|ley)",
@@ -586,7 +598,7 @@ def scrape_proyectos_ley() -> dict:
         url = "https://www.camara.cl/legislacion/ProyectosDeLey/proyectos_ley.aspx"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         soup = BeautifulSoup(r.text, "html.parser")
-        
+
         # Buscamos en las tablas de proyectos recientes
         for tag in soup.find_all("a", href=re.compile(r"prmID=")):
             texto = tag.get_text().strip()
@@ -595,7 +607,9 @@ def scrape_proyectos_ley() -> dict:
                 texto,
                 re.IGNORECASE,
             ) and is_item_valid(texto):
-                link = "https://www.camara.cl/legislacion/ProyectosDeLey/" + tag.get("href")
+                link = "https://www.camara.cl/legislacion/ProyectosDeLey/" + tag.get(
+                    "href"
+                )
                 is_new = database.save_alert(
                     source=source, title=texto, url=link, category="proyecto_ley"
                 )
@@ -628,11 +642,13 @@ def scrape_ipt() -> dict:
         url = "https://centrodeestudios.minvu.gob.cl/"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         soup = BeautifulSoup(r.text, "html.parser")
-        
+
         for tag in soup.find_all("a"):
             texto = tag.get_text().strip()
             if re.search(
-                r"(PRC|PRMS|PRI|Plan Regulador|zonificación|territorial|IPT)", texto, re.IGNORECASE
+                r"(PRC|PRMS|PRI|Plan Regulador|zonificación|territorial|IPT)",
+                texto,
+                re.IGNORECASE,
             ) and is_item_valid(texto):
                 link = tag.get("href", "")
                 full_link = link if link.startswith("http") else url + link
@@ -655,9 +671,9 @@ def scrape_ipt() -> dict:
     }
 
 
-
 # BOT 9: SEA (Servicio de Evaluación Ambiental)
 # ════════════════════════════════════════════════════════════════
+
 
 def scrape_sea() -> dict:
     source = "sea"
@@ -667,22 +683,24 @@ def scrape_sea() -> dict:
         url = "https://www.sea.gob.cl/noticias"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, verify=False)
         soup = BeautifulSoup(r.text, "html.parser")
-        
+
         # En el portal de noticias del SEA, buscamos títulos y links en las filas de vistas
         for article in soup.find_all("div", class_="views-row"):
             link_tag = article.find("a")
             if not link_tag:
                 continue
-                
+
             title = link_tag.get_text().strip()
             link = link_tag.get("href", "")
-            
+
             if re.search(
                 r"(urbanización|inmobiliario|loteo|edificio|vivienda|centro comercial|parque|planta|residencial|plan regulador|impacto ambiental)",
                 title,
                 re.IGNORECASE,
             ):
-                full_link = link if link.startswith("http") else "https://www.sea.gob.cl" + link
+                full_link = (
+                    link if link.startswith("http") else "https://www.sea.gob.cl" + link
+                )
                 is_new = database.save_alert(
                     source=source,
                     title=title[:250],
@@ -691,7 +709,7 @@ def scrape_sea() -> dict:
                 )
                 if is_new:
                     items.append(f"SEA: {title} | Link: {full_link}")
-                    
+
     except Exception as e:
         database.save_scrape_history(source, 0, "error", str(e))
         return {
@@ -709,6 +727,7 @@ def scrape_sea() -> dict:
         "count": len(items),
         "report_html": markdown.markdown(informe_md),
     }
+
 
 SCRAPERS = {
     "diario-oficial": scrape_diario_oficial,
