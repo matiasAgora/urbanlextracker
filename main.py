@@ -297,6 +297,7 @@ def api_history_source(request: Request, source: str):
 
     return {
         "source": bot_status["display_name"] if bot_status else source,
+        "source_id": actual_source,
         "metadata": bot_status,
         "history": history,
     }

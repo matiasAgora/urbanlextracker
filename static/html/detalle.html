@@ -104,8 +104,9 @@
                         <span id="bot-icon-large" class="material-symbols-outlined text-background text-4xl">robot</span>
                     </div>
                     <div>
-                        <h2 class="text-3xl font-headline font-black">Resumen del Día</h2>
-                        <p id="bot-last-sync" class="text-sm font-bold text-primary">Última revisión: ---</p>
+                        <h2 id="bot-title-summary" class="text-3xl font-headline font-black text-primary mb-1">Cargando...</h2>
+                        <h3 class="text-xl font-headline font-black">Resumen del Día</h3>
+                        <p id="bot-last-sync" class="text-sm font-bold text-primary opacity-80">Última revisión: ---</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
@@ -129,8 +130,13 @@
 
         <!-- History Feed -->
         <section class="space-y-8">
-            <h3 class="text-xl font-headline font-black flex items-center gap-3 px-2">
-                <span class="material-symbols-outlined text-primary">history</span> Registro Permanente
+            <h3 class="text-xl font-headline font-black flex items-center justify-between px-2">
+                <span class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">history</span> Historial
+                </span>
+                <button onclick="runSingleScrape()" class="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-xl transition-all shadow-md shadow-primary/5 flex items-center justify-center" title="Forzar escaneo en este momento para este Bot">
+                    <span id="sync-single-icon" class="material-symbols-outlined text-sm font-black">sync</span>
+                </button>
             </h3>
             
             <div id="history-list" class="space-y-4">
@@ -146,6 +152,30 @@
         <p class="text-[10px] font-bold uppercase tracking-widest">UrbanLexTracker Premium — Registro Histórico Corporativo</p>
     </footer>
 </div>
+
+<!-- Modal for single bot scan -->
+<div id="scrape-modal" class="hidden fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass max-w-lg w-full rounded-[32px] p-8 relative border border-white/10 shadow-2xl">
+        <button onclick="closeModal()" class="absolute top-6 right-6 text-on-surface-variant hover:text-white transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <h3 class="text-2xl font-headline font-black mb-6 flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary text-3xl">check_circle</span> 
+            Resultado de Rastreo
+        </h3>
+        <div id="modal-content" class="text-sm text-on-surface-variant space-y-4">
+            <!-- content injected here -->
+        </div>
+        <div class="mt-8 flex justify-end">
+            <button onclick="closeModal()" class="bg-primary/10 hover:bg-primary/20 text-primary px-6 py-2 rounded-xl font-bold uppercase tracking-widest text-xs transition-colors">Entendido</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .animate-spin { animation: spin 1s linear infinite; }
+</style>
 
 <script>
 let isExpanded = false;
@@ -168,12 +198,15 @@ async function loadBotDetail() {
             headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
         const data = await resp.json();
+        window.currentSourceId = data.source_id || source;
+        window.currentSourceName = data.source || source;
         renderDetail(data);
     } catch (err) { console.error(err); }
 }
 
 function renderDetail(data) {
     document.getElementById('bot-title').textContent = data.source;
+    document.getElementById('bot-title-summary').textContent = data.source;
     document.getElementById('bot-icon-large').textContent = getBotIcon(data.source);
     
     const meta = data.metadata;
@@ -223,6 +256,48 @@ function getBotIcon(name) {
         "Poder Judicial": "balance", "Prensa": "news", "Proyectos de Ley": "rule", "IPT": "map"
     };
     return icons[name] || "robot";
+}
+
+async function runSingleScrape() {
+    if (!window.currentSourceId) return;
+    const icon = document.getElementById('sync-single-icon');
+    icon.classList.add('animate-spin');
+    const btn = icon.parentElement;
+    btn.classList.add('pointer-events-none', 'opacity-50');
+    
+    try {
+        const resp = await fetch(`/api/scrape/${window.currentSourceId}`, {
+            headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
+        });
+        if(resp.ok) {
+            const data = await resp.json();
+            showModal(window.currentSourceName, data);
+            loadBotDetail(); // reload to show new items
+        } else {
+            ULT.showToast("Error en el rastreo", "error");
+        }
+    } catch (e) {
+        console.error(e);
+        ULT.showToast("Error de conexión", "error");
+    }
+    icon.classList.remove('animate-spin');
+    btn.classList.remove('pointer-events-none', 'opacity-50');
+}
+
+function showModal(botName, data) {
+    document.getElementById('scrape-modal').classList.remove('hidden');
+    let content = '';
+    const count = data.items_count || 0;
+    if(count > 0) {
+        content = `<p class="text-lg">¡Actualización exitosa!</p><p class="mt-2">El bot <strong class="text-white">${botName}</strong> ha encontrado <span class="text-tertiary font-black text-xl">${count}</span> nuevos hallazgos normativos. Estos se han registrado como "Nuevos Hoy" y pasarán al historial regular mañana.</p>`;
+    } else {
+        content = `<p class="text-lg">Búsqueda finalizada.</p><p class="mt-2">El bot <strong class="text-white">${botName}</strong> no detectó nuevas normativas o modificaciones recientes en este momento.</p>`;
+    }
+    document.getElementById('modal-content').innerHTML = content;
+}
+
+function closeModal() {
+    document.getElementById('scrape-modal').classList.add('hidden');
 }
 
 loadBotDetail();
