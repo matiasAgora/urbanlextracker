@@ -9,6 +9,7 @@ import os
 import re
 import requests
 import urllib3
+import warnings
 import feedparser
 import markdown
 import pytz
@@ -18,8 +19,10 @@ from dotenv import load_dotenv
 
 import database
 
-# Suppress unverified HTTPS warnings
+# Suppress unverified HTTPS warnings globally
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
+warnings.simplefilter("ignore", urllib3.exceptions.InsecureRequestWarning)
 
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY", "")
@@ -28,9 +31,78 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 TIMEOUT = 20
 
 
-def is_item_valid(texto: str) -> bool:
+URBANISM_KEYWORDS = [
+    "urbanismo",
+    "urbanístico",
+    "urbanística",
+    "arquitectura",
+    "construcción",
+    "inmobiliario",
+    "inmobiliaria",
+    "terreno",
+    "suelo",
+    "loteo",
+    "subdivisión",
+    "plan regulador",
+    "prc",
+    "plan intercomunal",
+    "permiso de edificación",
+    "recepción definitiva",
+    "dirección de obras",
+    "dom",
+    "minvu",
+    "seremi de vivienda",
+    "vivienda",
+    "bienes nacionales",
+    "expropiación",
+    "concesión",
+    "servidumbre",
+    "ley general de urbanismo",
+    "ordenanza general",
+    "oguc",
+    "lguc",
+    "impacto ambiental",
+    "evaluación ambiental",
+    "sea",
+    "sma",
+    "uso de suelo",
+    "zona rural",
+    "área verde",
+    "equipamiento",
+    "borde costero",
+    "condominio",
+    "copropiedad",
+    "asentamiento",
+    "campamento",
+    "subsidio habitacional",
+    "obras públicas",
+    "mop",
+    "seia",
+    "impacto sobre el sistema de movilidad",
+    "mitigación",
+    "patrimonio",
+    "monumento nacional",
+    "zona típica",
+    "edificación",
+]
+
+
+def is_urban_topic(texto: str) -> bool:
     texto_low = texto.lower()
-    # Ignorar palabras sueltas o de navegación genérica
+    return any(kw in texto_low for kw in URBANISM_KEYWORDS)
+
+
+def is_item_valid(texto: str) -> bool:
+    if not texto or len(texto.strip()) < 10:
+        return False
+
+    texto_low = texto.lower()
+
+    # 1. Filtro Estricto: Tiene que ser de Urbanismo
+    if not is_urban_topic(texto):
+        return False
+
+    # 2. Ignorar palabras de navegación
     if any(
         w in texto_low
         for w in [
@@ -50,15 +122,29 @@ def is_item_valid(texto: str) -> bool:
 
     now = datetime.now(pytz.timezone("America/Santiago"))
 
-    # Excluir explícitamente textos estáticos muy conocidos del Minvu / generales
+    # 3. Excluir títulos de navegación estáticos del Minvu (que siempre están en la web pero no son noticias)
     if re.search(
-        r"^(ley sobre agilización|ley de aportes|circulares de la|circulares división|ley general de urbanismo|ordenanza general|normas técnicas)\b",
+        r"^(ley sobre agilización|ley de aportes|circulares de la|circulares división|normas técnicas)\b",
         texto_low,
     ):
         return False
 
-    if str(now.year) in texto:
-        return True
+    # 4. Evitar años pasados (si menciona años viejos explícitamente y no el actual)
+    prev_years = [str(now.year - i) for i in range(1, 15)]
+    pattern = r"\b(" + "|".join(prev_years) + r")\b"
+    # Si menciona el año pasado pero TAMBIEN el actual, lo pasamos. Si SOLO menciona año pasado, false.
+    if re.search(pattern, texto) and str(now.year) not in texto:
+        return False
+
+    # 5. Requerimos algún identificador normativo o keyword de acción
+    if not re.search(r"\d+", texto):
+        if not re.search(
+            r"(consulta ciudadana|participación|proyecto de|norma|actualiza|ley|decreto|resolución|oficio|dictamen|aprueba|rechaza)",
+            texto_low,
+        ):
+            return False
+
+    return True
 
     # Evitar años pasados explícitos del 2015 al año pasado
     prev_years = [str(now.year - i) for i in range(1, 15)]
@@ -259,11 +345,7 @@ def scrape_diario_oficial() -> dict:
             if not title or len(title) < 15:
                 continue
 
-            if re.search(
-                r"(Decreto|Resolución|Ley|Circular|Reglamento|MINVU|urbanismo|condominio|edificación|vivienda|municipal|permiso|construcción|plan regulador|zonificación|suelo|bienes nacionales)",
-                title,
-                re.IGNORECASE,
-            ):
+            if is_item_valid(title):
                 is_new = database.save_alert(
                     source=source,
                     title=title[:300],
@@ -314,11 +396,7 @@ def scrape_contraloria() -> dict:
             if not link:
                 continue
 
-            if re.search(
-                r"(Dictamen|Resolución|E\d+|urbanismo|municipal|edificación|permiso|plan regulador)",
-                texto,
-                re.IGNORECASE,
-            ) and is_item_valid(texto):
+            if is_item_valid(texto):
                 full_link = (
                     "https://www.contraloria.cl" + link
                     if link.startswith("/")
@@ -465,11 +543,7 @@ def scrape_bcn() -> dict:
         for a in soup.find_all("a", href=re.compile(r"idNorma=")):
             texto = a.get_text().strip()
             link = a.get("href", "")
-            if re.search(
-                r"(Ley|Decreto|DFL|DL|urbanismo|vivienda|edificación|construcción)",
-                texto,
-                re.IGNORECASE,
-            ) and is_item_valid(texto):
+            if is_item_valid(texto):
                 full_link = (
                     "https://www.bcn.cl" + link if link.startswith("/") else link
                 )
@@ -513,11 +587,7 @@ def scrape_poder_judicial() -> dict:
                 continue
 
             texto = a.get_text().strip()
-            if re.search(
-                r"(inmobili|urbanismo|edificación|permiso|condominio|construcción|expropiación|fallo|ley)",
-                texto,
-                re.IGNORECASE,
-            ) and is_item_valid(texto):
+            if is_item_valid(texto):
                 link = (
                     "https://www.pjud.cl" + a.get("href", "")
                     if a.get("href", "").startswith("/")
@@ -560,11 +630,7 @@ def scrape_prensa() -> dict:
             for entry in feed.entries[:20]:
                 title = entry.get("title", "").strip()
                 link = entry.get("link", "")
-                if re.search(
-                    r"(urbanismo|inmobiliaria|vivienda|edificación|MINVU|condominio|plan regulador)",
-                    title,
-                    re.IGNORECASE,
-                ):
+                if is_urban_topic(title):
                     if is_feed_today(entry):
                         is_new = database.save_alert(
                             source=source, title=title, url=link, category="prensa"
@@ -602,11 +668,7 @@ def scrape_proyectos_ley() -> dict:
         # Buscamos en las tablas de proyectos recientes
         for tag in soup.find_all("a", href=re.compile(r"prmID=")):
             texto = tag.get_text().strip()
-            if re.search(
-                r"(urbanismo|vivienda|inmobili|condominio|edificación|construcción|suelo)",
-                texto,
-                re.IGNORECASE,
-            ) and is_item_valid(texto):
+            if is_item_valid(texto):
                 link = "https://www.camara.cl/legislacion/ProyectosDeLey/" + tag.get(
                     "href"
                 )
@@ -645,11 +707,7 @@ def scrape_ipt() -> dict:
 
         for tag in soup.find_all("a"):
             texto = tag.get_text().strip()
-            if re.search(
-                r"(PRC|PRMS|PRI|Plan Regulador|zonificación|territorial|IPT)",
-                texto,
-                re.IGNORECASE,
-            ) and is_item_valid(texto):
+            if is_item_valid(texto):
                 link = tag.get("href", "")
                 full_link = link if link.startswith("http") else url + link
                 is_new = database.save_alert(
@@ -693,11 +751,7 @@ def scrape_sea() -> dict:
             title = link_tag.get_text().strip()
             link = link_tag.get("href", "")
 
-            if re.search(
-                r"(urbanización|inmobiliario|loteo|edificio|vivienda|centro comercial|parque|planta|residencial|plan regulador|impacto ambiental)",
-                title,
-                re.IGNORECASE,
-            ):
+            if is_item_valid(title):
                 full_link = (
                     link if link.startswith("http") else "https://www.sea.gob.cl" + link
                 )
