@@ -135,11 +135,38 @@ def is_item_valid(texto: str) -> bool:
         return False
 
     # 4. Evitar años pasados (si menciona años viejos explícitamente y no el actual)
-    prev_years = [str(now.year - i) for i in range(1, 15)]
+    prev_years = [
+        str(now.year - i) for i in range(1, 40)
+    ]  # Expandir hasta 40 años atrás
     pattern = r"\b(" + "|".join(prev_years) + r")\b"
     # Si menciona el año pasado pero TAMBIEN el actual, lo pasamos. Si SOLO menciona año pasado, false.
     if re.search(pattern, texto) and str(now.year) not in texto:
         return False
+
+    # Evitar DDUs o resoluciones con sufijo de año muy antiguo (ej: DDU-ESP 001-07)
+    # Buscar patrones como "-07" "-15" "-2015"
+    old_suffix_years = [
+        f"-{str(now.year - i)[-2:]}" for i in range(2, 40)
+    ]  # -07, -15, etc (dejamos 1 año de gracia)
+    old_suffix_years += [f"-{now.year - i}" for i in range(2, 40)]  # -2007, -2015, etc
+
+    # Excepción rápida para DDU antiguas en formato DDU-ESP NNN-YY o NNN-YYYY
+    ddu_match = re.search(r"DDU.*?-(\d{2,4})\b", texto, re.IGNORECASE)
+    if ddu_match:
+        year_str = ddu_match.group(1)
+        if len(year_str) == 2:
+            # asume 2000s
+            y = int("20" + year_str)
+            if y < now.year - 1:  # Si es más antiguo que el año pasado, descartar
+                return False
+        elif len(year_str) == 4:
+            y = int(year_str)
+            if y < now.year - 1:
+                return False
+        elif len(year_str) == 4:
+            y = int(year_str)
+            if y < now.year - 1:
+                return False
 
     # 5. Requerimos algún identificador normativo o keyword de acción
     if not re.search(r"\d+", texto):
