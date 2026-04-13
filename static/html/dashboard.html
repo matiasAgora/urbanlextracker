@@ -141,12 +141,13 @@ function expandSidebar(event) {
 
 async function loadDashboard() {
     try {
-        const user = await auth.require_auth_ui();
+        if (!ULT.requireAuth()) return;
+        const user = ULT.getUser() || { nombre: "Usuario", email: "" };
         document.getElementById('user-name').textContent = user.nombre || user.email;
         document.getElementById('user-display').classList.remove('hidden');
 
         const resp = await fetch('/api/dashboard/summary', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+            headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
         const data = await resp.json();
         renderBotGrid(data.bot_board);
@@ -197,7 +198,7 @@ async function runBotScrape(event, sourceId, btn) {
     
     try {
         const resp = await fetch(`/api/scrape/${sourceId}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+            headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
         if(resp.ok) {
             ULT.showToast(`Rastreo de ${sourceId} completado`, "success");
@@ -221,7 +222,7 @@ async function runAllScrapes() {
     
     try {
         const resp = await fetch('/api/scrape/all', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+            headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
         if(resp.ok) {
             ULT.showToast("Actualización Jurídica Completa", "success");

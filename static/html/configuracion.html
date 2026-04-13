@@ -148,8 +148,9 @@ function expandSidebar(event) {
 
 async function startApp() {
     try {
-        const user = await auth.require_auth_ui();
-        document.getElementById('user-email').value = user.email;
+        if (!ULT.requireAuth()) return;
+        const user = ULT.getUser() || {};
+        document.getElementById('user-email').value = user.email || '';
         document.getElementById('user-name').value = user.nombre || '';
         document.getElementById('user-prof').value = user.profesion || '';
         document.getElementById('keywords-input').value = user.keywords || 'urbanismo, decreto, ley general, vivienda';

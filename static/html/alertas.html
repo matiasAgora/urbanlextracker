@@ -123,7 +123,7 @@ function expandSidebar(event) {
 
 async function startApp() {
     try {
-        await auth.require_auth_ui();
+        if (!ULT.requireAuth()) return;
         loadAlerts(true);
     } catch(e) {}
 }
@@ -144,7 +144,7 @@ async function loadAlerts(reset = false) {
         if (search) url += `&search=${encodeURIComponent(search)}`;
 
         const resp = await fetch(url, {
-             headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+             headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
         const data = await resp.json();
         const html = data.alerts.map(a => `
@@ -178,7 +178,7 @@ function setSourceFilter(btn, source) {
 async function runAllScrapers() {
     ULT.showToast("Sincronizando...", "info");
     const resp = await fetch("/api/scrape/all", {
-         headers: { 'Authorization': `Bearer ${localStorage.getItem('ult_token')}` }
+         headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
     });
     if (resp.ok) { loadAlerts(true); }
 }
