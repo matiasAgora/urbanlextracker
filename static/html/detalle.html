@@ -202,10 +202,10 @@ function renderDetail(data) {
         div.className = 'history-card glass rounded-[32px] p-8 border border-white/5 space-y-4';
         div.innerHTML = `
             <div class="flex justify-between items-start gap-4">
-                <h4 class="text-xl font-headline font-black text-white/90 leading-tight">${item.titulo}</h4>
-                <span class="text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full whitespace-nowrap">${item.fecha}</span>
+                <h4 class="text-xl font-headline font-black text-white/90 leading-tight">${item.title || item.titulo}</h4>
+                <span class="text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full whitespace-nowrap">${item.date || item.fecha}</span>
             </div>
-            <p class="text-sm text-on-surface-variant leading-relaxed line-clamp-4">${item.descripcion}</p>
+            <p class="text-sm text-on-surface-variant leading-relaxed line-clamp-4">${item.summary || item.descripcion || ""}</p>
             <div class="pt-4 flex items-center gap-4">
                 <a href="${item.url}" target="_blank" class="text-xs font-bold text-primary flex items-center gap-1 hover:underline">
                     Ver Fuente Original <span class="material-symbols-outlined text-xs">open_in_new</span>
@@ -220,7 +220,7 @@ function renderDetail(data) {
 function getBotIcon(name) {
     const icons = {
         "Diario Oficial": "gavel", "Contraloría": "account_balance", "MINVU": "home_work", "BCN": "description",
-        "Poder Judicial": "balance", "Prensa": "news", "Proyectos de Ley": "rule", "SEA": "nature_people"
+        "Poder Judicial": "balance", "Prensa": "news", "Proyectos de Ley": "rule", "IPT": "map"
     };
     return icons[name] || "robot";
 }
