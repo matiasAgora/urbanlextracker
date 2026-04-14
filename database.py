@@ -2,6 +2,7 @@
 Urban Lex Tracker — Database Module
 SQLite database for users, alerts, scrape history, and keywords.
 """
+
 import sqlite3
 import os
 from datetime import datetime
@@ -65,6 +66,7 @@ def init_db():
 
 # ─── User Operations ───
 
+
 def get_user_by_email(email: str):
     conn = get_connection()
     user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
@@ -79,12 +81,14 @@ def get_user_by_id(user_id: int):
     return dict(user) if user else None
 
 
-def create_user(email: str, hashed_password: str, nombre: str = "", profesion: str = ""):
+def create_user(
+    email: str, hashed_password: str, nombre: str = "", profesion: str = ""
+):
     conn = get_connection()
     try:
         conn.execute(
             "INSERT INTO users (email, hashed_password, nombre, profesion) VALUES (?, ?, ?, ?)",
-            (email, hashed_password, nombre, profesion)
+            (email, hashed_password, nombre, profesion),
         )
         conn.commit()
         user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
@@ -100,15 +104,25 @@ def update_user(user_id: int, nombre: str = None, profesion: str = None):
     if nombre is not None:
         conn.execute("UPDATE users SET nombre = ? WHERE id = ?", (nombre, user_id))
     if profesion is not None:
-        conn.execute("UPDATE users SET profesion = ? WHERE id = ?", (profesion, user_id))
+        conn.execute(
+            "UPDATE users SET profesion = ? WHERE id = ?", (profesion, user_id)
+        )
     conn.commit()
     conn.close()
 
 
 # ─── Alert Operations ───
 
-def save_alert(source: str, title: str, summary: str = "", url: str = "",
-               date: str = "", category: str = "general", html_report: str = "") -> bool:
+
+def save_alert(
+    source: str,
+    title: str,
+    summary: str = "",
+    url: str = "",
+    date: str = "",
+    category: str = "general",
+    html_report: str = "",
+) -> bool:
     conn = get_connection()
     # Avoid exact duplicates
     existing = conn.execute(
@@ -119,14 +133,20 @@ def save_alert(source: str, title: str, summary: str = "", url: str = "",
         return False
     conn.execute(
         "INSERT INTO alerts (source, title, summary, url, date, category, html_report) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (source, title, summary, url, date, category, html_report)
+        (source, title, summary, url, date, category, html_report),
     )
     conn.commit()
     conn.close()
     return True
 
 
-def get_alerts(source: str = None, limit: int = 50, offset: int = 0, search: str = None, today_only: bool = False):
+def get_alerts(
+    source: str = None,
+    limit: int = 50,
+    offset: int = 0,
+    search: str = None,
+    today_only: bool = False,
+):
     conn = get_connection()
     query = "SELECT * FROM alerts"
     params = []
@@ -174,11 +194,14 @@ def mark_alerts_read():
 
 # ─── Scrape History ───
 
-def save_scrape_history(source: str, items_found: int, status: str = "success", error_message: str = ""):
+
+def save_scrape_history(
+    source: str, items_found: int, status: str = "success", error_message: str = ""
+):
     conn = get_connection()
     conn.execute(
         "INSERT INTO scrape_history (source, items_found, status, error_message) VALUES (?, ?, ?, ?)",
-        (source, items_found, status, error_message)
+        (source, items_found, status, error_message),
     )
     conn.commit()
     conn.close()
@@ -195,39 +218,52 @@ def get_sources_status():
         "prensa": "Prensa",
         "proyectos-ley": "Proyectos de Ley",
         "ipt": "IPT",
-        "sea": "SEA"
+        "sea": "SEA",
     }
     result = []
     for key, display_name in sources_map.items():
+        # Get alerts ONLY for today for the "items_found_today" count
+        today_count = conn.execute(
+            "SELECT COUNT(*) as c FROM alerts WHERE source = ? AND date(created_at) = date('now')",
+            (key,),
+        ).fetchone()["c"]
+
         last = conn.execute(
             "SELECT * FROM scrape_history WHERE source = ? ORDER BY timestamp DESC LIMIT 1",
-            (key,)
+            (key,),
         ).fetchone()
         if last:
-            result.append({
-                "source": key,
-                "display_name": display_name,
-                "last_scrape": last["timestamp"],
-                "items_found": last["items_found"],
-                "status": last["status"]
-            })
+            result.append(
+                {
+                    "source": key,
+                    "display_name": display_name,
+                    "last_scrape": last["timestamp"],
+                    "items_found": today_count,
+                    "status": last["status"],
+                }
+            )
         else:
-            result.append({
-                "source": key,
-                "display_name": display_name,
-                "last_scrape": None,
-                "items_found": 0,
-                "status": "never"
-            })
+            result.append(
+                {
+                    "source": key,
+                    "display_name": display_name,
+                    "last_scrape": None,
+                    "items_found": 0,
+                    "status": "never",
+                }
+            )
     conn.close()
     return result
 
 
 # ─── User Keywords ───
 
+
 def get_user_keywords(user_id: int):
     conn = get_connection()
-    keywords = conn.execute("SELECT keyword FROM user_keywords WHERE user_id = ?", (user_id,)).fetchall()
+    keywords = conn.execute(
+        "SELECT keyword FROM user_keywords WHERE user_id = ?", (user_id,)
+    ).fetchall()
     conn.close()
     return [k["keyword"] for k in keywords]
 
@@ -235,7 +271,10 @@ def get_user_keywords(user_id: int):
 def add_user_keyword(user_id: int, keyword: str):
     conn = get_connection()
     try:
-        conn.execute("INSERT INTO user_keywords (user_id, keyword) VALUES (?, ?)", (user_id, keyword.strip().lower()))
+        conn.execute(
+            "INSERT INTO user_keywords (user_id, keyword) VALUES (?, ?)",
+            (user_id, keyword.strip().lower()),
+        )
         conn.commit()
         conn.close()
         return True
@@ -246,6 +285,9 @@ def add_user_keyword(user_id: int, keyword: str):
 
 def remove_user_keyword(user_id: int, keyword: str):
     conn = get_connection()
-    conn.execute("DELETE FROM user_keywords WHERE user_id = ? AND keyword = ?", (user_id, keyword.strip().lower()))
+    conn.execute(
+        "DELETE FROM user_keywords WHERE user_id = ? AND keyword = ?",
+        (user_id, keyword.strip().lower()),
+    )
     conn.commit()
     conn.close()
