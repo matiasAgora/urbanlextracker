@@ -1,6 +1,6 @@
 # Force reload - Updated with expert UX/UI routes
 import os
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 # weasyprint requiere librerías GTK nativas no disponibles en Windows sin instalación adicional
@@ -500,6 +500,81 @@ def alertas():
 @app.get("/configuracion", response_class=HTMLResponse)
 def configuracion():
     return get_html("configuracion.html")
+
+
+@app.get("/reporte", response_class=HTMLResponse)
+def reporte():
+    return get_html("reporte.html")
+
+
+@app.post("/api/report/generate")
+def api_generate_report(request: Request):
+    auth.require_auth(request)
+    import json
+    import scrapers
+    import database
+
+    conn = database.get_connection()
+    # Find up to 30 un-summarized new documents today
+    alerts = conn.execute(
+        "SELECT id, source, title, category FROM alerts WHERE summary = '' OR date(created_at, 'localtime') = date('now', 'localtime') LIMIT 30"
+    ).fetchall()
+
+    if not alerts:
+        conn.close()
+        return {
+            "report_markdown": "No se encontraron nuevos hallazgos normativos para resumir.",
+            "status": "empty",
+        }
+
+    prompt = """Eres un Abogado Urbanista Senior experto en LGUC, OGUC, MINVU y Contraloría chilena.
+Genera un informe ejecutivo de los hallazgos normativos y provee un resumen por cada ID.
+
+Debes DEVOLVER ÚNICAMENTE un JSON VÁLIDO. No uses Markdown en tu respuesta para el contenedor, solo el texto JSON puro.
+Formato:
+{
+  "report_markdown": "# Reporte de Inteligencia Normativa\\n\\n**Fecha**: 14 abr 2026\\n\\n...",
+  "summaries": {
+    "123": "Resumen técnico urbanístico de 2 líneas sobre el ID 123.",
+    "124": "Resumen de ID 124..."
+  }
+}
+
+IMPORTANTE: El JSON debe ser válido y usar dobles comillas `"` para sus claves y propiedades de string. Usa secuencias de escape si hay saltos de línea `\\n` en el markdown.
+
+Documentos a analizar:
+"""
+    for a in alerts:
+        prompt += f"- ID: {a['id']} | {a['source']} | Título: {a['title']}\n"
+
+    try:
+        resp_text = scrapers.call_gemini(prompt)
+        # Limpieza brutal de JSON format wrappers de Gemini
+        if resp_text.startswith("```"):
+            resp_text = resp_text.split("```", 1)[1]
+            if resp_text.startswith("json"):
+                resp_text = resp_text[4:]
+            if resp_text.endswith("```"):
+                resp_text = resp_text[:-3]
+
+        data = json.loads(resp_text.strip())
+        summaries = data.get("summaries", {})
+
+        # Save summaries
+        for doc_id, summary in summaries.items():
+            conn.execute(
+                "UPDATE alerts SET summary = ? WHERE id = ?", (summary, int(doc_id))
+            )
+        conn.commit()
+
+        return {"report_markdown": data.get("report_markdown", ""), "status": "success"}
+    except Exception as e:
+        return {
+            "error": "Failed to parse AI JSON",
+            "raw": resp_text if "resp_text" in locals() else str(e),
+        }
+    finally:
+        conn.close()
 
 
 @app.get("/detalle", response_class=HTMLResponse)

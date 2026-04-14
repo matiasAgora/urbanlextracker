@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Reporte IA Oficial — UrbanLexTracker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #111827; }
+        .hoja-oficio {
+            width: 216mm;
+            min-height: 330mm;
+            background: white;
+            margin: 2rem auto;
+            padding: 2.5cm;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        @media print {
+            @page { size: legal; margin: 1cm; }
+            body { background: white; margin: 0; padding: 0; }
+            .hoja-oficio { box-shadow: none; margin: 0; width: 100%; min-height: 100%; padding: 1.5cm; }
+            .no-print { display: none !important; }
+        }
+        
+        .report-content h1 { font-family: 'Merriweather', serif; font-size: 2rem; font-weight: 900; border-bottom: 2px solid #0f172a; padding-bottom: 1rem; margin-bottom: 1.5rem; text-align: center; text-transform: uppercase; }
+        .report-content h2 { font-family: 'Merriweather', serif; font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-top: 2rem; margin-bottom: 1rem; }
+        .report-content h3 { font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 700; color: #334155; margin-top: 1.5rem; }
+        .report-content p { font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; text-align: justify; }
+        .report-content ul { list-style-type: disc; margin-left: 2rem; margin-bottom: 1rem; }
+        .report-content li { margin-bottom: 0.5rem; }
+        .report-content strong { color: #0f172a; }
+        
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { border: 4px solid #e2e8f0; border-top: 4px solid #0f172a; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div id="loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <h3 class="mt-4 font-bold text-xl text-slate-800">Generando Reporte Jurídico de IA...</h3>
+    <p class="text-sm text-slate-500 mt-2 text-center max-w-md">El motor Gemini de Google está analizando las normativas recientes y redactando su impacto urbanístico. Esto puede tomar hasta 60 segundos.</p>
+</div>
+
+<div class="fixed top-5 left-5 no-print">
+    <a href="/dashboard" class="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 text-sm">
+        Volver al Pizarrón
+    </a>
+</div>
+
+<div class="fixed top-5 right-5 no-print flex gap-3">
+    <button onclick="generateAIReport()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        Regenerar IA
+    </button>
+    <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+        Imprimir PDF
+    </button>
+</div>
+
+<main class="hoja-oficio">
+    <header class="mb-10 text-center border-b pb-6 border-slate-200">
+        <h2 class="font-black text-xs tracking-[0.3em] uppercase text-slate-400 mb-2">Informe Oficial Automatizado</h2>
+        <h1 class="text-3xl font-black font-serif text-slate-900">URBAN LEXTRACKER</h1>
+        <p class="text-sm font-bold text-slate-500 mt-2" id="report-date">Fecha de Emisión: Cargando...</p>
+    </header>
+
+    <div id="report-content" class="report-content">
+        <!-- Markdown is rendered here -->
+    </div>
+    
+    <footer class="mt-20 pt-6 border-t border-slate-200 text-center">
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Documento generado vía Inteligencia Artificial — UrbanLexTracker Premium</p>
+    </footer>
+</main>
+
+<script>
+async function generateAIReport() {
+    if (!ULT.requireAuth()) return;
+    
+    document.getElementById('loading').style.display = 'flex';
+    
+    const today = new Date();
+    document.getElementById('report-date').textContent = `Fecha de Emisión: ${today.toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+
+    try {
+        const resp = await fetch('/api/report/generate', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
+        });
+        const data = await resp.json();
+        
+        if (data.report_markdown) {
+            document.getElementById('report-content').innerHTML = marked.parse(data.report_markdown);
+        } else if (data.error) {
+            document.getElementById('report-content').innerHTML = `<p class="text-red-500 font-bold text-center">Error al generar: ${data.error}</p><pre class="text-xs bg-slate-100 p-4 rounded">${data.raw}</pre>`;
+        }
+    } catch (e) {
+        document.getElementById('report-content').innerHTML = `<p class="text-red-500 font-bold text-center">Error de conexión: ${e.message}</p>`;
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+// Generate upon entry if not generated today? Let's just generate manually or on load.
+// It takes 60 seconds, so doing it automatically on page load is perfect.
+generateAIReport();
+</script>
+</body>
+</html>

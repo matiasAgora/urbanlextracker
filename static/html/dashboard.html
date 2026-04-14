@@ -67,10 +67,14 @@
         <span class="sidebar-text font-headline font-extrabold text-xl text-primary">UrbanLexTracker</span>
     </a>
     
-    <nav class="flex-1 px-4 space-y-2 mt-4">
+        <nav class="flex-1 px-4 space-y-2 mt-4">
         <a href="/dashboard" class="flex items-center gap-4 p-3 rounded-xl bg-primary/10 text-primary transition-colors" onclick="event.stopPropagation()">
             <span class="material-symbols-outlined !fill-1">dashboard</span>
             <span class="sidebar-text font-bold text-sm">Pizarrón General</span>
+        </a>
+        <a href="/reporte" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">description</span>
+            <span class="sidebar-text font-bold text-sm">Reporte de IA (Oficio)</span>
         </a>
         <a href="/alertas" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
             <span class="material-symbols-outlined">notifications</span>
@@ -148,8 +152,11 @@
         <div id="global-modal-content" class="text-sm text-on-surface-variant space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
             <!-- content injected here -->
         </div>
-        <div class="mt-8 flex justify-end">
-            <button onclick="closeGlobalModal()" class="bg-primary/10 hover:bg-primary/20 text-primary px-6 py-2 rounded-xl font-bold uppercase tracking-widest text-xs transition-colors">Cerrar Reporte</button>
+        <div class="mt-8 flex justify-end gap-3">
+            <a href="/reporte" target="_blank" class="bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 px-6 py-2 rounded-xl font-bold uppercase tracking-widest text-xs transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">auto_awesome</span> Generar Reporte IA
+            </a>
+            <button onclick="closeGlobalModal()" class="bg-primary/10 hover:bg-primary/20 text-primary px-6 py-2 rounded-xl font-bold uppercase tracking-widest text-xs transition-colors">Cerrar</button>
         </div>
     </div>
 </div>

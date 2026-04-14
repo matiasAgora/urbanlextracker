@@ -297,7 +297,7 @@ def call_gemini(prompt: str) -> str:
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
         resp = requests.post(
-            url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30
+            url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=60
         )
         data = resp.json()
         if "candidates" in data and data["candidates"]:
@@ -525,15 +525,22 @@ def scrape_minvu() -> dict:
                         or "participacionciudadana" in link.lower()
                         or "DDU" in texto_limpio
                     ):
+                        # Extract the true title without "PDF - (XXX Kb)"
+                        clean_title = re.sub(
+                            r"\.PDF\s*-\s*\(\d+\s*Kb\)",
+                            "",
+                            texto_limpio,
+                            flags=re.IGNORECASE,
+                        ).strip()
                         is_new = database.save_alert(
                             source=source,
-                            title=texto_limpio,
+                            title=clean_title,
                             url=link,
                             category="norma_tecnica",
                             date=hoy_chile(),
                         )
                         if is_new:
-                            items.append(f"MINVU: {texto_limpio} | Link: {link}")
+                            items.append(f"MINVU: {clean_title} | Link: {link}")
                             found_in_url += 1
 
     except Exception as e:
