@@ -223,9 +223,10 @@ def get_sources_status():
     result = []
     for key, display_name in sources_map.items():
         # Get alerts ONLY for today for the "items_found_today" count
+        # Usamos localtime para evitar el desfase UTC de SQLite y sumamos que coincida con "is_new" por seguridad de escaneo fresco
         today_count = conn.execute(
-            "SELECT COUNT(*) as c FROM alerts WHERE source = ? AND date(created_at) = date('now')",
-            (key,),
+            "SELECT COUNT(*) as c FROM alerts WHERE source = ? AND (date(created_at, 'localtime') = date('now', 'localtime') OR date = ?)",
+            (key, datetime.now().strftime("%Y-%m-%d")),
         ).fetchone()["c"]
 
         last = conn.execute(

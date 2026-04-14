@@ -393,12 +393,18 @@ def scrape_diario_oficial() -> dict:
                 continue
 
             if is_item_valid(title):
+                # Try to extract actual publication date from URL
+                pub_date = hoy_chile()
+                date_match = re.search(r"/(\d{4})/(\d{2})/(\d{2})/", full_link)
+                if date_match:
+                    pub_date = f"{date_match.group(1)}-{date_match.group(2)}-{date_match.group(3)}"
+
                 is_new = database.save_alert(
                     source=source,
                     title=title[:300],
                     url=full_link,
                     category="normativa",
-                    date=hoy_chile(),
+                    date=pub_date,
                 )
                 if is_new:
                     items.append(f"DO: {title[:150]}... | Link: {full_link}")

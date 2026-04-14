@@ -132,16 +132,33 @@ let currentSource = "";
 let currentOffset = 0;
 const PAGE_SIZE = 20;
 
-function formatDocTitle(fullTitle) {
+function formatDocTitle(fullTitle, dateStr) {
     const match = fullTitle.match(/^((?:Ley|Decreto(?: Exento)?|Resoluci[oó]n|DDU(?:-ESP)?|Oficio|Dictamen|Circular|Fallo|PRC|Sentencia|Corte|CGR)\s+[\s\w\-.º°]+)(?::|\.|-)\s*(.*)/i);
+    let boldPart = fullTitle;
+    let normalPart = "";
+    
     if (match && match[2].trim().length > 0) {
-        return `<span class="font-black text-white">${match[1].trim()}</span> <span class="font-medium text-white/70">${match[2].trim()}</span>`;
+        boldPart = match[1].trim();
+        normalPart = match[2].trim();
+    } else {
+        const sepIdx = fullTitle.search(/[:.-]/);
+        if (sepIdx > 3 && sepIdx < 40) {
+            boldPart = fullTitle.substring(0, sepIdx).trim();
+            normalPart = fullTitle.substring(sepIdx + 1).trim();
+        }
     }
-    const sepIdx = fullTitle.search(/[:.-]/);
-    if (sepIdx > 3 && sepIdx < 40) {
-        return `<span class="font-black text-white">${fullTitle.substring(0, sepIdx).trim()}</span> <span class="font-medium text-white/70">${fullTitle.substring(sepIdx + 1).trim()}</span>`;
+    
+    let html = `<span class="font-black text-white">${boldPart} <span class="opacity-60 text-xs tracking-widest uppercase ml-2 px-2 py-0.5 bg-white/10 rounded">${dateStr}</span></span>`;
+    if (normalPart) {
+        html += ` <span class="font-medium text-white/70 ml-1">- ${normalPart}</span>`;
     }
-    return `<span class="font-medium text-white/70">${fullTitle}</span>`;
+    return html;
+}
+
+function formatCardDate(rawDate) {
+    if (!rawDate) return "Fecha desconocida";
+    if (rawDate.includes(" de ")) return rawDate;
+    return rawDate.split(" ")[0];
 }
 
 async function loadAlerts(reset = false) {
@@ -161,22 +178,21 @@ async function loadAlerts(reset = false) {
         const data = await resp.json();
         const html = data.alerts.map(a => {
             let rawDate = a.date || a.fecha || a.created_at || "Fecha desconocida";
-            const dateStr = rawDate.split(" ")[0]; // Clean out time if fallback to timestamp
+            const dateStr = formatCardDate(rawDate);
             const summaryStr = a.summary || a.descripcion || "";
             const titleStr = a.title || a.titulo || "Documento sin título";
             
             return `
-            <article class="p-6 bg-surface-container rounded-[24px] border border-white/5 hover:border-primary/20 transition-all group shadow-xl">
+            <article class="p-6 bg-surface-container rounded-[24px] border border-white/5 hover:border-white/40 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all group shadow-xl">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1 rounded-full">${a.source}</span>
                     <div class="flex items-center gap-3">
-                        <span class="text-[10px] text-white/40 font-black uppercase tracking-widest">${dateStr}</span>
                         <a href="${a.url}" target="_blank" class="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline bg-primary/10 px-3 py-1 rounded-md border border-primary/20 transition-colors">
                             Ver Fuente Original <span class="material-symbols-outlined text-[10px]">open_in_new</span>
                         </a>
                     </div>
                 </div>
-                <h3 class="font-headline text-lg mb-2 group-hover:text-primary transition-colors leading-tight">${formatDocTitle(titleStr)}</h3>
+                <h3 class="font-headline text-lg mb-2 group-hover:text-primary transition-colors leading-tight">${formatDocTitle(titleStr, dateStr)}</h3>
                 ${summaryStr && summaryStr !== "undefined" ? `<p class="text-sm text-on-surface-variant font-medium leading-relaxed line-clamp-2">${summaryStr}</p>` : ''}
             </article>
         `}).join('');
