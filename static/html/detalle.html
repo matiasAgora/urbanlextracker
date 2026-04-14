@@ -249,6 +249,22 @@ function renderDetail(data) {
     renderHistoryItems(data.history);
 }
 
+function formatDocTitle(fullTitle) {
+    // Regex that catches common prefixes like DDU 541, Ley 21.000, Decreto 123, Fallo Rol X, etc.
+    const match = fullTitle.match(/^((?:Ley|Decreto(?: Exento)?|Resoluci[oó]n|DDU(?:-ESP)?|Oficio|Dictamen|Circular|Fallo|PRC|Sentencia|Corte|CGR)\s+[\s\w\-.º°]+)(?::|\.|-)\s*(.*)/i);
+    if (match && match[2].trim().length > 0) {
+        return `<span class="font-black text-white">${match[1].trim()}</span> <span class="font-medium text-white/70">${match[2].trim()}</span>`;
+    }
+    
+    // Fallback split by first punctuation
+    const sepIdx = fullTitle.search(/[:.-]/);
+    if (sepIdx > 3 && sepIdx < 40) {
+        return `<span class="font-black text-white">${fullTitle.substring(0, sepIdx).trim()}</span> <span class="font-medium text-white/70">${fullTitle.substring(sepIdx + 1).trim()}</span>`;
+    }
+    
+    return `<span class="font-medium text-white/70">${fullTitle}</span>`;
+}
+
 function renderHistoryItems(items) {
     const list = document.getElementById('history-list');
     list.innerHTML = '';
@@ -263,7 +279,9 @@ function renderHistoryItems(items) {
     }
 
     items.forEach(item => {
-        const dateStr = item.date || item.fecha || item.created_at || "Fecha desconocida";
+        let rawDate = item.date || item.fecha || item.created_at || "Fecha desconocida";
+        const dateStr = rawDate.split(" ")[0]; // remove time if it comes from timestamp
+        
         const summaryStr = item.summary || item.descripcion || "";
         const titleStr = item.title || item.titulo || "Documento sin título";
         
@@ -271,15 +289,15 @@ function renderHistoryItems(items) {
         div.className = 'history-card bg-surface-container rounded-[20px] p-5 border border-white/5 space-y-3 hover:border-primary/20 transition-all';
         div.innerHTML = `
             <div class="flex justify-between items-start gap-4">
-                <h4 class="text-base font-headline font-bold text-white/90 leading-snug flex-1">${titleStr}</h4>
+                <h4 class="text-sm font-headline leading-snug flex-1">${formatDocTitle(titleStr)}</h4>
                 <div class="flex items-center gap-3 flex-shrink-0">
                     <span class="text-[10px] font-black uppercase tracking-widest text-white/50 whitespace-nowrap bg-white/5 px-2 py-1 rounded-md">${dateStr}</span>
-                    <a href="${item.url}" target="_blank" class="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline bg-primary/10 px-2 py-1 rounded-md border border-primary/20">
+                    <a href="${item.url}" target="_blank" class="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline bg-primary/10 px-2 py-1 rounded-md border border-primary/20 transition-colors">
                         Ver Fuente Original <span class="material-symbols-outlined text-[10px]">open_in_new</span>
                     </a>
                 </div>
             </div>
-            ${summaryStr ? `<p class="text-xs text-on-surface-variant leading-relaxed line-clamp-2">${summaryStr}</p>` : ''}
+            ${summaryStr && summaryStr !== "undefined" ? `<p class="text-xs text-on-surface-variant leading-relaxed line-clamp-2">${summaryStr}</p>` : ''}
         `;
         list.appendChild(div);
     });

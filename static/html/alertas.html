@@ -132,6 +132,18 @@ let currentSource = "";
 let currentOffset = 0;
 const PAGE_SIZE = 20;
 
+function formatDocTitle(fullTitle) {
+    const match = fullTitle.match(/^((?:Ley|Decreto(?: Exento)?|Resoluci[oó]n|DDU(?:-ESP)?|Oficio|Dictamen|Circular|Fallo|PRC|Sentencia|Corte|CGR)\s+[\s\w\-.º°]+)(?::|\.|-)\s*(.*)/i);
+    if (match && match[2].trim().length > 0) {
+        return `<span class="font-black text-white">${match[1].trim()}</span> <span class="font-medium text-white/70">${match[2].trim()}</span>`;
+    }
+    const sepIdx = fullTitle.search(/[:.-]/);
+    if (sepIdx > 3 && sepIdx < 40) {
+        return `<span class="font-black text-white">${fullTitle.substring(0, sepIdx).trim()}</span> <span class="font-medium text-white/70">${fullTitle.substring(sepIdx + 1).trim()}</span>`;
+    }
+    return `<span class="font-medium text-white/70">${fullTitle}</span>`;
+}
+
 async function loadAlerts(reset = false) {
     if (reset) currentOffset = 0;
     const feed = document.getElementById("alerts-feed");
@@ -147,21 +159,27 @@ async function loadAlerts(reset = false) {
              headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
         const data = await resp.json();
-        const html = data.alerts.map(a => `
-            <article class="p-8 bg-surface-container rounded-[32px] border border-white/5 hover:border-primary/20 transition-all group shadow-xl">
-                <div class="flex justify-between items-center mb-4">
+        const html = data.alerts.map(a => {
+            let rawDate = a.date || a.fecha || a.created_at || "Fecha desconocida";
+            const dateStr = rawDate.split(" ")[0]; // Clean out time if fallback to timestamp
+            const summaryStr = a.summary || a.descripcion || "";
+            const titleStr = a.title || a.titulo || "Documento sin título";
+            
+            return `
+            <article class="p-6 bg-surface-container rounded-[24px] border border-white/5 hover:border-primary/20 transition-all group shadow-xl">
+                <div class="flex justify-between items-center mb-3">
                     <span class="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1 rounded-full">${a.source}</span>
-                    <span class="text-[10px] text-white/20 font-black uppercase tracking-widest">${a.date || a.created_at}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] text-white/40 font-black uppercase tracking-widest">${dateStr}</span>
+                        <a href="${a.url}" target="_blank" class="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline bg-primary/10 px-3 py-1 rounded-md border border-primary/20 transition-colors">
+                            Ver Fuente Original <span class="material-symbols-outlined text-[10px]">open_in_new</span>
+                        </a>
+                    </div>
                 </div>
-                <h3 class="font-headline font-black text-xl text-on-surface mb-3 group-hover:text-primary transition-colors leading-tight">${a.title || a.titulo}</h3>
-                <p class="text-sm text-on-surface-variant font-medium leading-relaxed line-clamp-2">${a.summary || a.descripcion || ""}</p>
-                <div class="flex justify-end pt-6 border-t border-white/5 mt-6">
-                    <a href="${a.url}" target="_blank" class="text-[10px] font-black text-secondary hover:underline uppercase tracking-widest flex items-center gap-1">
-                        Abrir Documento Fuente <span class="material-symbols-outlined text-xs">open_in_new</span>
-                    </a>
-                </div>
+                <h3 class="font-headline text-lg mb-2 group-hover:text-primary transition-colors leading-tight">${formatDocTitle(titleStr)}</h3>
+                ${summaryStr && summaryStr !== "undefined" ? `<p class="text-sm text-on-surface-variant font-medium leading-relaxed line-clamp-2">${summaryStr}</p>` : ''}
             </article>
-        `).join('');
+        `}).join('');
 
         if (reset) feed.innerHTML = html || '<div class="text-center py-20 opacity-30">No se encontraron hallazgos en este segmento.</div>';
         else feed.insertAdjacentHTML("beforeend", html);

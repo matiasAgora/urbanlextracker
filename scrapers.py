@@ -89,6 +89,21 @@ URBANISM_KEYWORDS = [
     "zona típica",
     "edificación",
     "ddu",
+    "empresas constructoras",
+    "empresa constructora",
+    "empresas inmobiliarias",
+    "empresa inmobiliaria",
+    "empresas de arquitectura",
+    "empresa de arquitectura",
+    "empresas de construcción",
+    "empresa de construcción",
+    "abogados",
+    "abogado",
+    "derecho urbanístico",
+    "derecho urbano",
+    "litigio urbanístico",
+    "ley",
+    "decreto",
 ]
 
 
@@ -383,6 +398,7 @@ def scrape_diario_oficial() -> dict:
                     title=title[:300],
                     url=full_link,
                     category="normativa",
+                    date=hoy_chile(),
                 )
                 if is_new:
                     items.append(f"DO: {title[:150]}... | Link: {full_link}")
@@ -435,7 +451,11 @@ def scrape_contraloria() -> dict:
                     else link
                 )
                 is_new = database.save_alert(
-                    source=source, title=texto, url=full_link, category="dictamen"
+                    source=source,
+                    title=texto,
+                    url=full_link,
+                    category="dictamen",
+                    date=hoy_chile(),
                 )
                 if is_new:
                     items.append(f"CGR: {texto}")
@@ -504,6 +524,7 @@ def scrape_minvu() -> dict:
                             title=texto_limpio,
                             url=link,
                             category="norma_tecnica",
+                            date=hoy_chile(),
                         )
                         if is_new:
                             items.append(f"MINVU: {texto_limpio} | Link: {link}")
@@ -551,7 +572,11 @@ def scrape_bcn() -> dict:
                     "https://www.bcn.cl" + link if link.startswith("/") else link
                 )
                 is_new = database.save_alert(
-                    source=source, title=texto, url=full_link, category="ley"
+                    source=source,
+                    title=texto,
+                    url=full_link,
+                    category="ley",
+                    date=hoy_chile(),
                 )
                 if is_new:
                     items.append(f"BCN: {texto}")
@@ -597,7 +622,11 @@ def scrape_poder_judicial() -> dict:
                     else a.get("href", url)
                 )
                 is_new = database.save_alert(
-                    source=source, title=texto, url=link, category="jurisprudencia"
+                    source=source,
+                    title=texto,
+                    url=link,
+                    category="jurisprudencia",
+                    date=hoy_chile(),
                 )
                 if is_new:
                     items.append(f"PJUD: {texto}")
@@ -636,7 +665,11 @@ def scrape_prensa() -> dict:
                 if is_urban_topic(title):
                     if is_feed_today(entry):
                         is_new = database.save_alert(
-                            source=source, title=title, url=link, category="prensa"
+                            source=source,
+                            title=title,
+                            url=link,
+                            category="prensa",
+                            date=hoy_chile(),
                         )
                         if is_new:
                             items.append(f"PRENSA: {title} | Link: {link}")
@@ -676,7 +709,11 @@ def scrape_proyectos_ley() -> dict:
                     "href"
                 )
                 is_new = database.save_alert(
-                    source=source, title=texto, url=link, category="proyecto_ley"
+                    source=source,
+                    title=texto,
+                    url=link,
+                    category="proyecto_ley",
+                    date=hoy_chile(),
                 )
                 if is_new:
                     items.append(f"Cámara: {texto}")
@@ -714,7 +751,11 @@ def scrape_ipt() -> dict:
                 link = tag.get("href", "")
                 full_link = link if link.startswith("http") else url + link
                 is_new = database.save_alert(
-                    source=source, title=texto, url=full_link, category="ipt"
+                    source=source,
+                    title=texto,
+                    url=full_link,
+                    category="ipt",
+                    date=hoy_chile(),
                 )
                 if is_new:
                     items.append(f"IPT/MINVU: {texto}")
@@ -763,6 +804,7 @@ def scrape_sea() -> dict:
                     title=title[:250],
                     url=full_link,
                     category="ambiental",
+                    date=hoy_chile(),
                 )
                 if is_new:
                     items.append(f"SEA: {title} | Link: {full_link}")
