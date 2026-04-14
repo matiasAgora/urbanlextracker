@@ -96,31 +96,33 @@
     <main class="p-8 space-y-12 max-w-5xl mx-auto w-full">
         
         <!-- Daily Summary Card -->
-        <section class="glass rounded-[40px] p-10 border border-white/5 relative overflow-hidden">
+        <section class="glass rounded-[32px] p-6 border border-white/5 relative overflow-hidden">
             <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl"></div>
-            <div class="relative z-10 space-y-6">
-                <div class="flex items-center gap-4">
-                    <div id="bot-icon-container" class="bg-primary p-4 rounded-2xl">
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <div id="bot-icon-container" class="bg-primary p-4 rounded-2xl flex-shrink-0">
                         <span id="bot-icon-large" class="material-symbols-outlined text-background text-4xl">robot</span>
                     </div>
                     <div>
-                        <h2 id="bot-title-summary" class="text-3xl font-headline font-black text-primary mb-1">Cargando...</h2>
-                        <h3 class="text-xl font-headline font-black">Resumen del Día</h3>
-                        <p id="bot-last-sync" class="text-sm font-bold text-primary opacity-80">Última revisión: ---</p>
+                        <h2 id="bot-title-summary" class="text-2xl font-headline font-black text-primary mb-1">Cargando...</h2>
+                        <h3 class="text-lg font-headline font-black text-white/90">Resumen del Día</h3>
+                        <p id="bot-last-sync" class="text-[10px] font-bold text-primary opacity-80 uppercase tracking-widest mt-1">Última revisión: ---</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-                    <div class="bg-white/5 p-6 rounded-3xl border border-white/5">
-                        <p class="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Hallazgos Hoy</p>
-                        <p id="count-today" class="text-3xl font-black">0</p>
+                
+                <!-- Minimized stats aligned to the right -->
+                <div class="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 min-w-[120px]">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Hallazgos Hoy</p>
+                        <p id="count-today" class="text-2xl font-black text-white">0</p>
                     </div>
-                    <div class="bg-white/5 p-6 rounded-3xl border border-white/5">
-                        <p class="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Total Histórico</p>
-                        <p id="count-total" class="text-3xl font-black">---</p>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 min-w-[120px]">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Total Histórico</p>
+                        <p id="count-total" class="text-2xl font-black text-white">---</p>
                     </div>
-                    <div class="bg-white/5 p-6 rounded-3xl border border-white/5">
-                        <p class="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Estado de Red</p>
-                        <p class="text-xl font-black text-tertiary flex items-center gap-2">
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5 min-w-[120px]">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant mb-1">Estado de Red</p>
+                        <p class="text-lg font-black text-tertiary flex items-center gap-1 mt-1">
                              <span class="material-symbols-outlined text-sm">wifi</span> Conectado
                         </p>
                     </div>
@@ -129,17 +131,23 @@
         </section>
 
         <!-- History Feed -->
-        <section class="space-y-8">
+        <section class="space-y-6">
             <h3 class="text-xl font-headline font-black flex items-center justify-between px-2">
                 <span class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-primary">history</span> Historial
                 </span>
-                <button onclick="runSingleScrape()" class="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-xl transition-all shadow-md shadow-primary/5 flex items-center justify-center" title="Forzar escaneo en este momento para este Bot">
-                    <span id="sync-single-icon" class="material-symbols-outlined text-sm font-black">sync</span>
-                </button>
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">search</span>
+                        <input type="text" id="history-search" oninput="filterHistory()" placeholder="Buscar por palabra o fecha..." class="bg-white/5 border border-white/10 rounded-xl py-1.5 pl-9 pr-4 text-xs focus:outline-none focus:border-primary/50 transition-colors w-64 text-white placeholder:text-white/30">
+                    </div>
+                    <button onclick="runSingleScrape()" class="bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded-xl transition-all shadow-md shadow-primary/5 flex items-center justify-center" title="Forzar escaneo en este momento para este Bot">
+                        <span id="sync-single-icon" class="material-symbols-outlined text-sm font-black">sync</span>
+                    </button>
+                </div>
             </h3>
             
-            <div id="history-list" class="space-y-4">
+            <div id="history-list" class="space-y-3">
                 <!-- History items will be injected here -->
                 <div class="animate-pulse bg-white/5 h-32 rounded-3xl"></div>
                 <div class="animate-pulse bg-white/5 h-32 rounded-3xl"></div>
@@ -200,6 +208,7 @@ async function loadBotDetail() {
         const data = await resp.json();
         window.currentSourceId = data.source_id || source;
         window.currentSourceName = data.source || source;
+        window.currentHistoryData = data.history || [];
         renderDetail(data);
     } catch (err) { console.error(err); }
 }
@@ -237,24 +246,62 @@ function renderDetail(data) {
         return;
     }
 
-    data.history.forEach(item => {
+    renderHistoryItems(data.history);
+}
+
+function renderHistoryItems(items) {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+
+    if (items.length === 0) {
+        list.innerHTML = `
+            <div class="py-12 text-center opacity-30">
+                <span class="material-symbols-outlined text-4xl mb-3">search_off</span>
+                <p class="font-bold">No se encontraron resultados.</p>
+            </div>`;
+        return;
+    }
+
+    items.forEach(item => {
+        const dateStr = item.date || item.fecha || item.created_at || "Fecha desconocida";
+        const summaryStr = item.summary || item.descripcion || "";
+        const titleStr = item.title || item.titulo || "Documento sin título";
+        
         const div = document.createElement('div');
-        div.className = 'history-card glass rounded-[32px] p-8 border border-white/5 space-y-4';
+        div.className = 'history-card bg-surface-container rounded-[20px] p-5 border border-white/5 space-y-3 hover:border-primary/20 transition-all';
         div.innerHTML = `
             <div class="flex justify-between items-start gap-4">
-                <h4 class="text-xl font-headline font-black text-white/90 leading-tight">${item.title || item.titulo}</h4>
-                <span class="text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full whitespace-nowrap">${item.date || item.fecha}</span>
+                <h4 class="text-base font-headline font-bold text-white/90 leading-snug flex-1">${titleStr}</h4>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-white/50 whitespace-nowrap bg-white/5 px-2 py-1 rounded-md">${dateStr}</span>
+                    <a href="${item.url}" target="_blank" class="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline bg-primary/10 px-2 py-1 rounded-md border border-primary/20">
+                        Ver Fuente Original <span class="material-symbols-outlined text-[10px]">open_in_new</span>
+                    </a>
+                </div>
             </div>
-            <p class="text-sm text-on-surface-variant leading-relaxed line-clamp-4">${item.summary || item.descripcion || ""}</p>
-            <div class="pt-4 flex items-center gap-4">
-                <a href="${item.url}" target="_blank" class="text-xs font-bold text-primary flex items-center gap-1 hover:underline">
-                    Ver Fuente Original <span class="material-symbols-outlined text-xs">open_in_new</span>
-                </a>
-                <span class="text-[10px] text-white/20 uppercase font-black tracking-widest">ID: ${item.id}</span>
-            </div>
+            ${summaryStr ? `<p class="text-xs text-on-surface-variant leading-relaxed line-clamp-2">${summaryStr}</p>` : ''}
         `;
         list.appendChild(div);
     });
+}
+
+function filterHistory() {
+    if (!window.currentHistoryData) return;
+    const query = document.getElementById('history-search').value.toLowerCase();
+    
+    if (!query) {
+        renderHistoryItems(window.currentHistoryData);
+        return;
+    }
+    
+    const filtered = window.currentHistoryData.filter(item => {
+        const title = (item.title || item.titulo || "").toLowerCase();
+        const summary = (item.summary || item.descripcion || "").toLowerCase();
+        const date = (item.date || item.fecha || item.created_at || "").toLowerCase();
+        return title.includes(query) || summary.includes(query) || date.includes(query);
+    });
+    
+    renderHistoryItems(filtered);
 }
 
 function getBotStyle(name) {
