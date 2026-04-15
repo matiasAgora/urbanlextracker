@@ -88,10 +88,19 @@ async function generateAIReport() {
     const today = new Date();
     document.getElementById('report-date').textContent = `Fecha de Emisión: ${today.toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })}`;
 
+    // Read sources from URL params if present (Informe Selección)
+    const urlParams = new URLSearchParams(window.location.search);
+    const sourcesStr = urlParams.get('sources');
+    const payload = sourcesStr ? { sources: sourcesStr.split(',') } : {};
+
     try {
         const resp = await fetch('/api/report/generate', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
+            headers: { 
+                'Authorization': `Bearer ${ULT.getToken()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
         const data = await resp.json();
         

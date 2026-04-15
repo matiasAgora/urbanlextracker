@@ -76,6 +76,10 @@
             <span class="material-symbols-outlined">description</span>
             <span class="sidebar-text font-bold text-sm">Reporte de IA (Oficio)</span>
         </a>
+        <a href="/configuracion" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">settings</span>
+            <span class="sidebar-text font-bold text-sm">Configuración</span>
+        </a>
         <a href="/alertas" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
             <span class="material-symbols-outlined">notifications</span>
             <span class="sidebar-text font-bold text-sm">Historial de Alertas</span>
@@ -105,6 +109,19 @@
             <p class="text-xs text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Vigilancia Normativa Activa</p>
         </div>
         <div class="flex items-center gap-4">
+            <div class="relative group">
+                <button class="bg-indigo-500/20 text-indigo-300 px-6 py-2 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-500/30 transition-all border border-indigo-500/20">
+                    <span class="material-symbols-outlined text-sm">auto_awesome</span> Reporte IA
+                </button>
+                <div class="absolute top-full right-0 mt-2 w-48 bg-surface-container border border-white/10 rounded-xl shadow-xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    <a href="/reporte" target="_blank" class="block w-full text-left px-4 py-3 text-sm font-bold text-white hover:bg-white/5 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm text-indigo-400">summarize</span> Informe Total
+                    </a>
+                    <button onclick="enableSelectionMode()" class="w-full text-left px-4 py-3 text-sm font-bold text-white hover:bg-white/5 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm text-tertiary">checklist</span> Informe Selección
+                    </button>
+                </div>
+            </div>
              <button id="btn-total-scrape" onclick="runAllScrapes()" class="bg-primary text-background px-6 py-2 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary/20">
                 <span id="total-scrape-icon" class="material-symbols-outlined text-sm">sync</span> Rastreo Total
             </button>
@@ -121,6 +138,22 @@
     <!-- Main Content -->
     <main class="p-8 space-y-12 max-w-7xl mx-auto w-full">
         <section>
+            <div id="selection-bar" class="hidden bg-indigo-500/10 border border-indigo-500/20 rounded-3xl p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-indigo-400 text-3xl">checklist</span>
+                    <div>
+                        <p class="text-indigo-100 font-bold">Modo Selección Activo</p>
+                        <p class="text-indigo-300/70 text-xs">Selecciona los bots que deseas incluir en el reporte y haz clic en generar.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <button onclick="cancelSelectionMode()" class="flex-1 sm:flex-none px-6 py-3 text-xs font-bold text-white hover:bg-white/5 rounded-xl transition-colors uppercase tracking-widest border border-white/5">Cancelar</button>
+                    <button onclick="executeSelectionReport()" class="flex-1 sm:flex-none bg-indigo-600 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">magic_button</span> Ejecutar Informe
+                    </button>
+                </div>
+            </div>
+
             <div class="flex items-center justify-between mb-8">
                 <h2 class="text-lg font-headline font-bold flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">analytics</span> Estado de los Bots
@@ -128,8 +161,26 @@
                 <span class="text-[10px] font-bold text-tertiary bg-tertiary/10 px-3 py-1 rounded-full uppercase tracking-widest status-pulse">Totalmente Operativo</span>
             </div>
             
-            <div id="bot-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div id="bot-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 <!-- Data will be injected here -->
+            </div>
+            
+            <div class="mt-16 pt-12 border-t border-white/5 w-full">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+                    <h2 class="text-xl font-headline font-black flex items-center gap-3 w-full md:w-auto">
+                        <span class="material-symbols-outlined text-primary">history</span> Historial de Alertas
+                    </h2>
+                    
+                    <div class="relative group w-full md:w-96">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
+                        <input id="search-input" type="text" placeholder="Buscar en el historial..."
+                            class="w-full bg-surface-container border border-white/5 py-3 pl-12 pr-4 text-sm text-on-surface placeholder:text-on-surface-variant/40 rounded-2xl focus:outline-none focus:border-primary/50 transition-all shadow-xl"/>
+                    </div>
+                </div>
+
+                <div id="alerts-feed" class="space-y-3 pb-12 w-full">
+                    <div class="p-6 bg-surface-container rounded-3xl border border-white/5 animate-pulse h-24"></div>
+                </div>
             </div>
         </section>
     </main>
@@ -173,14 +224,13 @@ function expandSidebar(event) {
 
 async function loadDashboard() {
     try {
-        if (!ULT.requireAuth()) return;
-        const user = ULT.getUser() || { nombre: "Usuario", email: "" };
-        document.getElementById('user-name').textContent = user.nombre || user.email;
-        document.getElementById('user-display').classList.remove('hidden');
-
         const resp = await fetch('/api/dashboard/summary', {
             headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
+        if (!resp.ok) {
+            if (resp.status === 401) window.location.href = '/login';
+            return;
+        }
         const data = await resp.json();
         renderBotGrid(data.bot_board);
     } catch (err) { console.error(err); }
@@ -195,33 +245,52 @@ function renderBotGrid(bots) {
     bots.forEach(bot => {
         const card = document.createElement('div');
         const isHighlighted = window.highlightBots.includes(bot.source_id);
-        card.className = `bot-card bg-surface-container rounded-[32px] p-6 flex flex-col justify-between cursor-pointer ${isHighlighted ? 'glow-led' : ''}`;
-        card.onclick = () => window.location.href = `/detalle?source=${encodeURIComponent(bot.name)}`;
+        card.className = `bot-card bg-surface-container rounded-3xl p-4 flex flex-col text-center ${isHighlighted ? 'glow-led' : ''}`;
+        
+        card.onclick = () => {
+            if (window.selectionMode) {
+                const checkbox = card.querySelector('input[type="checkbox"]');
+                if (checkbox) checkbox.checked = !checkbox.checked;
+            } else {
+                window.location.href = `/detalle?source=${encodeURIComponent(bot.name)}`;
+            }
+        };
         
         const style = getBotStyle(bot.name);
+        
+        const docMatch = (bot.last_finding || "").match(/^((?:Ley|Decreto(?: Exento)?|Resoluci[oó]n|DDU(?:-ESP)?|Oficio|Dictamen|Circular|Fallo|PRC|Sentencia|Corte|CGR)\s+[\s\w\-.º°]+)/i);
+        const shortDoc = docMatch ? docMatch[1].trim() : "Documento Normativo";
+
+        let titlesHtml = "";
+        if (bot.last_3_titles && bot.last_3_titles.length > 0) {
+            titlesHtml = bot.last_3_titles.map(t => `<li class="truncate text-[10px] text-on-surface-variant/90 before:content-['•'] before:mr-1 before:text-primary/50">${t}</li>`).join('');
+        } else {
+            titlesHtml = `<li class="text-[10px] text-on-surface-variant/50">Esperando rastreo...</li>`;
+        }
+
         card.innerHTML = `
-            <div class="space-y-4">
-                <div class="flex justify-between items-start">
-                    <div class="${style.bg} p-3 rounded-2xl">
-                        <span class="material-symbols-outlined ${style.color} text-2xl">${style.icon}</span>
-                    </div>
+            <div class="selection-checkbox hidden absolute top-3 right-3 z-20">
+                <input type="checkbox" value="${bot.source_id}" class="w-5 h-5 rounded-md border-white/20 bg-background/50 text-indigo-500 focus:ring-indigo-500 cursor-pointer">
+            </div>
+
+            <div class="flex items-center gap-3 py-2 pointer-events-none border-b border-white/5 pb-3">
+                <div class="relative w-8 h-8 flex-shrink-0 flex items-center justify-center">
+                    <div class="absolute w-8 h-8 rounded-full blur-xl ${style.bg.replace('/10', '/40')}"></div>
+                    <span class="material-symbols-outlined text-2xl ${style.color} relative z-10 drop-shadow-[0_0_10px_currentColor]">${style.icon}</span>
                 </div>
-                <div>
-                    <h3 class="font-headline font-black text-on-surface">${bot.name}</h3>
-                    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest mt-1">Sincronizado: ${bot.last_sync}</p>
+                <div class="text-left overflow-hidden w-full">
+                    <h3 class="font-headline font-black text-on-surface text-sm truncate">${bot.name}</h3>
+                    <p class="text-[9px] ${bot.items_found_today > 0 ? 'text-tertiary font-black' : 'text-on-surface-variant font-bold'} uppercase tracking-widest truncate">
+                        ${bot.items_found_today > 0 ? `Novedades Hoy (${bot.items_found_today})` : 'Sin novedades hoy'}
+                    </p>
                 </div>
             </div>
             
-            <div class="mt-6 pt-6 border-t border-white/5">
-                <p class="text-[10px] text-on-surface-variant font-black uppercase tracking-tighter mb-2">Último hallazgo:</p>
-                <p class="text-xs text-on-surface/80 leading-relaxed font-medium line-clamp-3 italic">
-                    "${bot.last_finding || "Exploración en curso sin novedades legales..."}"
-                </p>
+            <div class="mt-3 text-left w-full overflow-hidden pointer-events-none">
+                <ul class="space-y-1.5 flex flex-col justify-start">
+                    ${titlesHtml}
+                </ul>
             </div>
-            
-            <button onclick="runBotScrape(event, '${bot.source_id}', this)" class="btn-scrape-mini" title="Rastrear esta fuente">
-                <span class="material-symbols-outlined text-sm">sync</span>
-            </button>
         `;
         grid.appendChild(card);
     });
@@ -295,6 +364,65 @@ function closeGlobalModal() {
     document.getElementById('global-modal').classList.add('hidden');
 }
 
+function formatCardDate(dStr) {
+    if(!dStr) return "";
+    try {
+        const d = new Date(dStr);
+        return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' });
+    } catch(e) { return dStr; }
+}
+
+function formatDocTitle(title, dateStr) {
+    return `<span class="opacity-50 text-sm mr-2">[${dateStr}]</span> ${title}`;
+}
+
+let currentOffset = 0;
+let currentSearch = "";
+
+async function loadAlerts(reset = false) {
+    if (reset) {
+        currentOffset = 0;
+        document.getElementById('alerts-feed').innerHTML = '';
+    }
+    
+    const url = new URL(window.location.origin + '/api/alerts');
+    url.searchParams.append('limit', 50);
+    url.searchParams.append('offset', currentOffset);
+    if (currentSearch) url.searchParams.append('search', currentSearch);
+
+    try {
+        const resp = await fetch(url.toString(), {
+            headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
+        });
+        if (!resp.ok) return;
+        
+        const data = await resp.json();
+        const feed = document.getElementById('alerts-feed');
+        
+        const html = data.alerts.map(a => {
+            let rawDate = a.date || a.fecha || a.created_at || "Fecha desconocida";
+            const dateStr = formatCardDate(rawDate);
+            const summaryStr = a.summary || a.descripcion || "";
+            const titleStr = a.title || a.titulo || "Documento sin título";
+            
+            return `
+            <article class="p-5 bg-surface-container rounded-[24px] border border-white/5 hover:border-white/40 hover:shadow-lg transition-all group">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[9px] font-black text-primary uppercase tracking-[0.2em] bg-primary/10 px-3 py-1 rounded-full">${a.source}</span>
+                    <a href="${a.url}" target="_blank" class="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline bg-primary/10 px-3 py-1 rounded-md border border-primary/20 transition-colors">
+                        Fuente <span class="material-symbols-outlined text-[10px]">open_in_new</span>
+                    </a>
+                </div>
+                <h3 class="font-headline text-base mb-1 group-hover:text-primary transition-colors leading-tight">${formatDocTitle(titleStr, dateStr)}</h3>
+                ${summaryStr && summaryStr !== "undefined" ? `<p class="text-xs text-on-surface-variant font-medium leading-relaxed line-clamp-2">${summaryStr}</p>` : ''}
+            </article>
+        `}).join('');
+
+        if (reset) feed.innerHTML = html || '<div class="text-center py-10 opacity-30">No se encontraron hallazgos en el historial.</div>';
+        else feed.insertAdjacentHTML("beforeend", html);
+    } catch(e) { console.error(e); }
+}
+
 function getBotStyle(name) {
     const styles = {
         "Diario Oficial": { icon: "gavel", color: "text-rose-300", bg: "bg-rose-400/10" },
@@ -309,7 +437,54 @@ function getBotStyle(name) {
     return styles[name] || { icon: "robot", color: "text-primary", bg: "bg-primary/10" };
 }
 
-loadDashboard();
+window.selectionMode = false;
+
+function enableSelectionMode() {
+    window.selectionMode = true;
+    document.getElementById('selection-bar').classList.remove('hidden');
+    document.querySelectorAll('.selection-checkbox').forEach(cb => cb.classList.remove('hidden'));
+    document.querySelectorAll('.bot-card').forEach(card => card.classList.add('cursor-pointer'));
+}
+
+function cancelSelectionMode() {
+    window.selectionMode = false;
+    document.getElementById('selection-bar').classList.add('hidden');
+    document.querySelectorAll('.selection-checkbox').forEach(cb => {
+        cb.classList.add('hidden');
+        const input = cb.querySelector('input');
+        if (input) input.checked = false;
+    });
+}
+
+function executeSelectionReport() {
+    const selectedInputs = Array.from(document.querySelectorAll('.selection-checkbox input:checked'));
+    if (selectedInputs.length === 0) {
+        ULT.showToast('Selecciona al menos una fuente para generar el reporte.', 'error');
+        return;
+    }
+    const sources = selectedInputs.map(input => input.value).join(',');
+    window.open(`/reporte?sources=${encodeURIComponent(sources)}`, '_blank');
+    cancelSelectionMode();
+}
+
+function startApp() {
+    loadDashboard();
+    loadAlerts(true);
+    
+    let debounceTimer;
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                currentSearch = e.target.value;
+                loadAlerts(true);
+            }, 500);
+        });
+    }
+}
+
+startApp();
 </script>
 
 </body>

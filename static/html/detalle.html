@@ -56,6 +56,10 @@
             <span class="material-symbols-outlined">description</span>
             <span class="sidebar-text font-bold text-sm">Reporte de IA (Oficio)</span>
         </a>
+        <a href="/configuracion" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
+            <span class="material-symbols-outlined">settings</span>
+            <span class="sidebar-text font-bold text-sm">Configuración</span>
+        </a>
         <a href="/alertas" class="flex items-center gap-4 p-3 rounded-xl text-on-surface-variant hover:bg-white/5 transition-colors" onclick="event.stopPropagation()">
             <span class="material-symbols-outlined">notifications</span>
             <span class="sidebar-text font-bold text-sm">Historial de Alertas</span>
@@ -202,13 +206,19 @@ function expandSidebar(event) {
 async function loadBotDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const source = urlParams.get('source');
-    if (!source) { window.location.href = '/dashboard'; return; }
+    if (!source) {
+        document.getElementById('bot-title').textContent = "Fuente no encontrada";
+        return;
+    }
 
     try {
-        if (!ULT.requireAuth()) return;
         const resp = await fetch(`/api/history/${encodeURIComponent(source)}`, {
             headers: { 'Authorization': `Bearer ${ULT.getToken()}` }
         });
+        if (!resp.ok) {
+            if (resp.status === 401) window.location.href = '/login';
+            return;
+        }
         const data = await resp.json();
         window.currentSourceId = data.source_id || source;
         window.currentSourceName = data.source || source;
@@ -383,10 +393,15 @@ function showModal(botName, data) {
     document.getElementById('scrape-modal').classList.remove('hidden');
     let content = '';
     const count = data.items_count || 0;
-    if(count > 0) {
-        content = `<p class="text-lg">¡Actualización exitosa!</p><p class="mt-2">El bot <strong class="text-white">${botName}</strong> ha encontrado <span class="text-tertiary font-black text-xl">${count}</span> nuevos hallazgos normativos. Estos se han registrado como "Nuevos Hoy" y pasarán al historial regular mañana.</p>`;
+    
+    if (data.html_report) {
+        content = `<div class="prose prose-invert prose-sm max-w-none">${data.html_report}</div>`;
     } else {
-        content = `<p class="text-lg">Búsqueda finalizada.</p><p class="mt-2">El bot <strong class="text-white">${botName}</strong> no detectó nuevas normativas o modificaciones recientes en este momento.</p>`;
+        if(count > 0) {
+            content = `<p class="text-lg">¡Actualización exitosa!</p><p class="mt-2">El bot <strong class="text-white">${botName}</strong> ha encontrado <span class="text-tertiary font-black text-xl">${count}</span> nuevos hallazgos normativos. Estos se han registrado como "Nuevos Hoy" y pasarán al historial regular mañana.</p>`;
+        } else {
+            content = `<p class="text-lg">Búsqueda finalizada.</p><p class="mt-2">El bot <strong class="text-white">${botName}</strong> no detectó nuevas normativas o modificaciones recientes en este momento.</p>`;
+        }
     }
     document.getElementById('modal-content').innerHTML = content;
 }

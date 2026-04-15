@@ -253,16 +253,22 @@ def api_dashboard_summary(request: Request):
             (s for s in sources_status if s["source"] == source_id), None
         )
 
-        # Get last finding
-        last_alert = database.get_alerts(source=source_id, limit=1)
-        last_finding = (
-            last_alert[0]["title"] if last_alert else "Sin hallazgos recientes."
-        )
-
         display_name = (
             status_entry["display_name"]
             if status_entry
             else source_id.replace("-", " ").title()
+        )
+
+        # Get last 3 findings
+        last_alerts = database.get_alerts(source=source_id, limit=3)
+        last_3_titles = (
+            [a["title"] for a in last_alerts]
+            if last_alerts
+            else ["Sin hallazgos registrados."]
+        )
+
+        last_finding = (
+            last_alerts[0]["title"] if last_alerts else "Sin hallazgos recientes."
         )
 
         results.append(
@@ -273,6 +279,7 @@ def api_dashboard_summary(request: Request):
                 "last_sync": status_entry["last_scrape"] if status_entry else "---",
                 "items_found_today": status_entry["items_found"] if status_entry else 0,
                 "last_finding": last_finding,
+                "last_3_titles": last_3_titles,
             }
         )
 
@@ -508,17 +515,28 @@ def reporte():
 
 
 @app.post("/api/report/generate")
-def api_generate_report(request: Request):
+async def api_generate_report(request: Request):
     auth.require_auth(request)
     import json
     import scrapers
     import database
 
+    try:
+        body = await request.json()
+        sources = body.get("sources", [])
+    except:
+        sources = []
+
     conn = database.get_connection()
-    # Find up to 30 un-summarized new documents today
-    alerts = conn.execute(
-        "SELECT id, source, title, category FROM alerts WHERE summary = '' OR date(created_at, 'localtime') = date('now', 'localtime') LIMIT 30"
-    ).fetchall()
+    if sources:
+        # Build IN clause dynamically
+        placeholders = ",".join(["?"] * len(sources))
+        query = f"SELECT id, source, title, category FROM alerts WHERE source IN ({placeholders}) AND (summary = '' OR date(created_at, 'localtime') = date('now', 'localtime')) LIMIT 30"
+        alerts = conn.execute(query, sources).fetchall()
+    else:
+        alerts = conn.execute(
+            "SELECT id, source, title, category FROM alerts WHERE summary = '' OR date(created_at, 'localtime') = date('now', 'localtime') LIMIT 30"
+        ).fetchall()
 
     if not alerts:
         conn.close()

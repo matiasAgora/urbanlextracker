@@ -102,8 +102,10 @@ URBANISM_KEYWORDS = [
     "derecho urbanístico",
     "derecho urbano",
     "litigio urbanístico",
-    "ley",
-    "decreto",
+    "minvu",
+    "mop",
+    "bienes nacionales",
+    "medio ambiente",
 ]
 
 
@@ -122,7 +124,7 @@ def is_item_valid(texto: str) -> bool:
     if not is_urban_topic(texto):
         return False
 
-    # 2. Ignorar palabras de navegación
+    # 2. Ignorar palabras de navegación o temas no urbanísticos
     if any(
         w in texto_low
         for w in [
@@ -136,6 +138,38 @@ def is_item_valid(texto: str) -> bool:
             "sitio",
             "portal",
             "navegar",
+            "kerosene",
+            "combustible",
+            "impuesto específico",
+            "petróleo",
+            "paridad",
+            "educación",
+            "salud",
+            "extradición",
+            "armas",
+            "pesca",
+            "acuicultura",
+            "fuerzas armadas",
+            "ejército",
+            "armada",
+            "fuerza aérea",
+            "carabineros",
+            "pdi",
+            "policía",
+            "cárcel",
+            "gendarmería",
+            "hospital",
+            "cenabast",
+            "isp",
+            "diplomático",
+            "embajador",
+            "consulado",
+            "nombramiento",
+            "renuncia",
+            "asciende",
+            "pensión",
+            "jubilación",
+            "aguinaldo",
         ]
     ):
         return False
@@ -288,7 +322,23 @@ def is_spanish_date_today(date_str: str) -> bool:
 
 
 def hoy_chile():
-    return datetime.now(CHILE_TZ).strftime("%d de %B de %Y")
+    now = datetime.now(CHILE_TZ)
+    meses = [
+        "",
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre",
+    ]
+    return f"{now.day} de {meses[now.month]} de {now.year}"
 
 
 def call_gemini(prompt: str) -> str:
@@ -323,34 +373,42 @@ def _get_db_history(source: str, limit: int = 3) -> list:
 
 def procesar_salida(source, items_nuevos, icon, title, limit_history=3):
     """Lógica unificada para garantizar que si no hay novedad, se diga en Python y no dependa de Gemini."""
+
+    fecha_str = hoy_chile()
+
+    # 1. Preparar bloque del día
     if items_nuevos:
         texto_extraido = "\n".join(items_nuevos[:8])
-        prompt = f"""Eres experto normativo. Fecha: {hoy_chile()}. Redacta un informe Markdown sobre estos NUEVOS hallazgos.
-        Encabezamiento: **{icon} {title} ({hoy_chile()}):**
-        Usa viñetas para cada hallazgo destacando el impacto brevemente. Ignora links genéricos.
+        prompt = f"""Eres experto normativo en urbanismo y arquitectura chilena. Fecha: {fecha_str}.
+        Redacta un informe Markdown sobre estos NUEVOS hallazgos relevantes para empresas constructoras, inmobiliarias y arquitectos.
+        Usa viñetas para cada hallazgo destacando el impacto brevemente.
         Hallazgos:
         {texto_extraido}"""
-        informe_md = call_gemini(prompt)
-        return informe_md
+        bloque_hoy = call_gemini(prompt)
+        bloque_hoy = (
+            f"**{icon} {title}**\n\n✅ **Novedades de Hoy ({fecha_str}):** Se han detectado **{len(items_nuevos)}** nuevos hallazgos en el ámbito urbano, arquitectónico e inmobiliario.\n\n"
+            + bloque_hoy
+        )
     else:
-        # Modo sin novedades: Generamos el header en Python para asegurar la precisión
-        historicos = _get_db_history(source, limit_history)
-        out = f"**{icon} {title} ({hoy_chile()}):**\n\n📌 *No se han detectado novedades o cambios normativos el día de hoy.*\n\n**Últimos hallazgos registrados:**\n"
-        if not historicos:
-            out += "- La base de datos histórica de esta fuente se encuentra vacía."
-            return out
+        bloque_hoy = f"**{icon} {title}**\n\n📌 **Novedades de Hoy ({fecha_str}):** 0 hallazgos.\n*(No se han detectado nuevas leyes, decretos u ordenanzas de relevancia urbanística o arquitectónica el día de hoy).* \n\n"
 
+    # 2. Preparar bloque histórico
+    historicos = _get_db_history(source, limit_history)
+    if not historicos:
+        bloque_hist = "**Historial Reciente:**\n- La base de datos histórica de esta fuente se encuentra vacía."
+    else:
         texto_hist = "\n".join(
             [f"- **[{h['title']}]({h['url']})**" for h in historicos]
         )
-
-        # Pedimos a Gemini que limpie y explique el histórico para que se vea bien
-        prompt = f"""Eres experto normativo. Hay 0 novedades hoy. 
-        Toma esta lista de items históricos y formatea UNA breve viñeta por item explicando de qué podría tratar (muy conciso), manteniendo el formato Markdown con viñetas.
+        prompt_hist = f"""Eres experto normativo. Toma esta lista de items históricos de normativas de arquitectura y urbanismo, y formatea UNA breve viñeta por item explicando de qué trata (muy conciso, para arquitectos y constructoras). Formato Markdown.
         Items Históricos:
         {texto_hist}"""
-        gemini_hist = call_gemini(prompt)
-        return out + gemini_hist
+        gemini_hist = call_gemini(prompt_hist)
+        bloque_hist = "**Historial Reciente:**\n\n" + gemini_hist
+
+    # 3. Ensamblar separados por línea
+    out = f"{bloque_hoy}\n\n---\n\n{bloque_hist}"
+    return out
 
 
 # ════════════════════════════════════════════════════════════════
