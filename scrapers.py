@@ -111,7 +111,9 @@ URBANISM_KEYWORDS = [
 
 def is_urban_topic(texto: str) -> bool:
     texto_low = texto.lower()
-    return any(kw in texto_low for kw in URBANISM_KEYWORDS)
+    # Relaxed for debugging: if it has digits or common urban terms
+    if not texto or len(texto) < 5: return False
+    return any(kw in texto_low for kw in URBANISM_KEYWORDS) or re.search(r"\d+", texto)
 
 
 def is_item_valid(texto: str) -> bool:
