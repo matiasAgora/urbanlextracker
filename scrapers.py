@@ -345,7 +345,8 @@ def call_gemini(prompt: str) -> str:
     if not API_KEY:
         return "⚠️ API Key de Gemini no configurada."
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+        # Usamos el modelo estable disponible en v1beta
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
         resp = requests.post(
             url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=60
         )
