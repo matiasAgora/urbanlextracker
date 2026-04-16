@@ -553,56 +553,59 @@ def scrape_minvu() -> dict:
             "https://www.minvu.gob.cl/elementos-tecnicos/circulares-division-de-desarrollo-urbano-ddu/circulares-generales-por-numero/",
             "https://www.minvu.gob.cl/elementos-tecnicos/circulares-division-de-desarrollo-urbano-ddu/circulares-especificas-ddu-por-numero/",
             "https://www.minvu.gob.cl/noticias/noticias/",
-            "https://www.minvu.gob.cl/marco-normativo/",
         ]
         for url in urls:
             r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, verify=False)
             soup = BeautifulSoup(r.text, "html.parser")
 
             found_in_url = 0
+            # Buscamos más links para no perdernos la última (ej: 541)
             for a in soup.find_all("a"):
-                if found_in_url >= 3:
+                if found_in_url >= 20: 
                     break
 
                 href = a.get("href", "")
                 texto = a.get_text(separator=" ").strip()
                 texto = re.sub(r"\s+", " ", texto)
 
-                if is_item_valid(texto) and len(texto) > 15:
-                    # En MINVU a veces el texto viene con ".PDF - (XXX Kb)", limpiémoslo visualmente
-                    texto_limpio = re.sub(
-                        r"\.PDF\s*-\s*\(\d+\s*Kb\)", "", texto, flags=re.IGNORECASE
-                    ).strip()
+                if is_item_valid(texto) and len(texto) > 10:
+                    found_in_url += 1
+                    
+                    # Intentar extraer fecha del texto (formatos comunes: DD-MM-YYYY, DD/MM/YYYY)
+                    date_found = None
+                    date_match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", texto)
+                    if date_match:
+                        date_found = f"{date_match.group(3)}-{date_match.group(2).zfill(2)}-{date_match.group(1).zfill(2)}"
+                    
+                    # Si no hay fecha en el texto, buscamos en el contenedor (padre)
+                    if not date_found and a.parent:
+                        parent_text = a.parent.get_text()
+                        date_match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", parent_text)
+                        if date_match:
+                            date_found = f"{date_match.group(3)}-{date_match.group(2).zfill(2)}-{date_match.group(1).zfill(2)}"
 
                     link = href
                     if link and link.startswith("/"):
                         link = "https://www.minvu.gob.cl" + link
-                    elif not link.startswith("http"):
-                        continue
-
-                    # Solo guardamos si es un documento normativo, noticia MINVU o DDU
-                    if (
-                        "minvu.gob.cl" in link.lower()
-                        or "participacionciudadana" in link.lower()
-                        or "DDU" in texto_limpio
-                    ):
-                        # Extract the true title without "PDF - (XXX Kb)"
-                        clean_title = re.sub(
-                            r"\.PDF\s*-\s*\(\d+\s*Kb\)",
-                            "",
-                            texto_limpio,
-                            flags=re.IGNORECASE,
-                        ).strip()
+                    
+                    # Solo guardamos si es relevante
+                    if "minvu.gob.cl" in link.lower() or "ddu" in texto.lower():
+                        # Si no encontramos fecha, asumimos que no es de hoy por seguridad (rigurosidad)
+                        item_date = date_found if date_found else "2024-01-01"
+                        
+                        # Solo marcar como novedad si es HOY (o si no tiene fecha, no marcarlo)
+                        is_today = is_spanish_date_today(texto) or (date_found == datetime.now(CHILE_TZ).strftime("%Y-%m-%d"))
+                        
                         is_new = database.save_alert(
                             source=source,
-                            title=clean_title,
+                            title=texto[:300],
                             url=link,
                             category="norma_tecnica",
-                            date=hoy_chile(),
+                            date=item_date,
                         )
-                        if is_new:
-                            items.append(f"MINVU: {clean_title} | Link: {link}")
-                            found_in_url += 1
+                        # Rigurosidad: Solo reportar como "encontrado hoy" si coincide la fecha
+                        if is_new and is_today:
+                            items.append(f"MINVU: {texto[:150]}")
 
     except Exception as e:
         database.save_scrape_history(source, 0, "error", str(e))
