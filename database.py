@@ -175,8 +175,9 @@ def get_alerts(
 def get_alert_count():
     conn = get_connection()
     total = conn.execute("SELECT COUNT(*) as c FROM alerts").fetchone()["c"]
+    # Usamos la fecha del documento para el contador de "hoy" (no la de inserción)
     today = conn.execute(
-        "SELECT COUNT(*) as c FROM alerts WHERE date(created_at) = date('now')"
+        "SELECT COUNT(*) as c FROM alerts WHERE date = date('now', 'localtime')"
     ).fetchone()["c"]
     new_count = conn.execute(
         "SELECT COUNT(*) as c FROM alerts WHERE is_new = 1"

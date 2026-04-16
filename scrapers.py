@@ -595,16 +595,21 @@ def scrape_minvu() -> dict:
                     if link and link.startswith("/"):
                         link = "https://www.minvu.gob.cl" + link
                     
-                    # Solo guardamos si es relevante
-                    if "minvu.gob.cl" in link.lower() or "ddu" in texto.lower():
+                    # Solo guardamos si es relevante y no es basura histórica conocida
+                    blacklist = ["DDU-ESP 043", "DDU-ESP 061", "DDU-ESP 006", "P 006", "DDU-ESP 015"]
+                    is_blacklisted = any(b in texto for b in blacklist)
+                    
+                    if not is_blacklisted and ("minvu.gob.cl" in link.lower() or "ddu" in texto.lower()):
                         # Si la fecha encontrada es muy antigua (como 2008), la descartamos
                         if date_found and int(date_found.split("-")[0]) < 2024:
                             date_found = None
 
-                        item_date = date_found if date_found else hoy_chile()
+                        # RIGUROSIDAD: Si no hay fecha o es dudosa, NO es de hoy.
+                        item_date = date_found if date_found else "2024-01-01"
                         
-                        # Solo marcar como novedad si es HOY
-                        is_today = is_spanish_date_today(texto) or (date_found == datetime.now(CHILE_TZ).strftime("%Y-%m-%d"))
+                        # Solo marcar como novedad si es HOY (YYYY-MM-DD)
+                        today_iso = datetime.now(CHILE_TZ).strftime("%Y-%m-%d")
+                        is_today = (date_found == today_iso) or is_spanish_date_today(texto)
                         
                         is_new = database.save_alert(
                             source=source,
