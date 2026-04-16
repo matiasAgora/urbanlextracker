@@ -571,18 +571,25 @@ def scrape_minvu() -> dict:
                 if is_item_valid(texto) and len(texto) > 10:
                     found_in_url += 1
                     
-                    # Intentar extraer fecha del texto (formatos comunes: DD-MM-YYYY, DD/MM/YYYY)
+                    # Intentar extraer fecha del texto, pero ignorar fechas irrelevantes (antiguas)
                     date_found = None
-                    date_match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", texto)
-                    if date_match:
-                        date_found = f"{date_match.group(3)}-{date_match.group(2).zfill(2)}-{date_match.group(1).zfill(2)}"
+                    date_matches = re.finditer(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", texto + " " + (a.parent.get_text() if a.parent else ""))
                     
-                    # Si no hay fecha en el texto, buscamos en el contenedor (padre)
-                    if not date_found and a.parent:
-                        parent_text = a.parent.get_text()
-                        date_match = re.search(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", parent_text)
-                        if date_match:
-                            date_found = f"{date_match.group(3)}-{date_match.group(2).zfill(2)}-{date_match.group(1).zfill(2)}"
+                    target_year = str(datetime.now(CHILE_TZ).year)
+                    for match in date_matches:
+                        d, m, y = match.groups()
+                        # Prioridad absoluta al año actual o 2025
+                        if y == target_year or y == "2025":
+                            date_found = f"{y}-{m.zfill(2)}-{d.zfill(2)}"
+                            break
+                        # Si no hay del año actual, nos quedamos con la primera que encontremos (pero la validaremos luego)
+                        if not date_found:
+                            date_found = f"{y}-{m.zfill(2)}-{d.zfill(2)}"
+
+                    # Buscar año en la URL (ej: /uploads/2026/03/)
+                    url_year_match = re.search(r"/(\202[456])/", href)
+                    if url_year_match:
+                        date_found = date_found or f"{url_year_match.group(1)}-01-01"
 
                     link = href
                     if link and link.startswith("/"):
@@ -590,10 +597,13 @@ def scrape_minvu() -> dict:
                     
                     # Solo guardamos si es relevante
                     if "minvu.gob.cl" in link.lower() or "ddu" in texto.lower():
-                        # Si no encontramos fecha, asumimos que no es de hoy por seguridad (rigurosidad)
-                        item_date = date_found if date_found else "2024-01-01"
+                        # Si la fecha encontrada es muy antigua (como 2008), la descartamos
+                        if date_found and int(date_found.split("-")[0]) < 2024:
+                            date_found = None
+
+                        item_date = date_found if date_found else hoy_chile()
                         
-                        # Solo marcar como novedad si es HOY (o si no tiene fecha, no marcarlo)
+                        # Solo marcar como novedad si es HOY
                         is_today = is_spanish_date_today(texto) or (date_found == datetime.now(CHILE_TZ).strftime("%Y-%m-%d"))
                         
                         is_new = database.save_alert(

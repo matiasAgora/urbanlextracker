@@ -164,7 +164,7 @@ def get_alerts(
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
 
-    query += " ORDER BY created_at DESC, id ASC LIMIT ? OFFSET ?"
+    query += " ORDER BY id DESC LIMIT ? OFFSET ?"
     params.extend([limit, offset])
 
     alerts = conn.execute(query, params).fetchall()
