@@ -347,8 +347,8 @@ def call_gemini(prompt: str) -> str:
     if not API_KEY:
         return "⚠️ API Key de Gemini no configurada."
     try:
-        # Usamos el modelo estable disponible en v1beta
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+        # Cambiamos a v1 estable para evitar errores de modelo no encontrado
+        url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={API_KEY}"
         resp = requests.post(
             url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=60
         )
@@ -561,7 +561,7 @@ def scrape_minvu() -> dict:
             found_in_url = 0
             # Buscamos más links para no perdernos la última (ej: 541)
             for a in soup.find_all("a"):
-                if found_in_url >= 20: 
+                if found_in_url >= 50: 
                     break
 
                 href = a.get("href", "")
