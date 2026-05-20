@@ -12,3 +12,4 @@ feedparser
 google-generativeai
 google-api-core[grpc,grpcgcp]
 functions-framework
+resend>=2.0.0
