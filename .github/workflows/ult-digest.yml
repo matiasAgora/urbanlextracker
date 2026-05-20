@@ -1,0 +1,24 @@
+name: ULT — Digest Diario
+
+on:
+  schedule:
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --upgrade pip && pip install -r requirements.txt
+      - name: Ejecutar digest
+        env:
+          SUPABASE_URL:              ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY:         ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY:            ${{ secrets.RESEND_API_KEY }}
+        run: python digest.py
