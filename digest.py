@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ─── CONFIGURACIÓN ────────────────────────────────────────────
-FROM_EMAIL    = "ULT <ult@agorarevision.cl>"
+FROM_EMAIL    = "ULT <ult@liberonarquitectura.cl>"
 SUBJECT_BASE  = "ULT · Novedades normativas"
 HAIKU_MODEL   = "claude-haiku-4-5-20251001"
 CHILE_TZ      = pytz.timezone("America/Santiago")
