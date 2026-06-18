@@ -491,11 +491,12 @@ def scrape_contraloria() -> dict:
 # ════════════════════════════════════════════════════════════════
 # BOT 3: MINVU (DDU & Normas)
 # ════════════════════════════════════════════════════════════════
-
-
 def scrape_minvu() -> dict:
     source = "minvu"
     items = []
+    today_iso = datetime.now(CHILE_TZ).strftime("%Y-%m-%d")
+    current_year = str(datetime.now(CHILE_TZ).year)
+
     try:
         urls = [
             "https://www.minvu.gob.cl/elementos-tecnicos/circulares-division-de-desarrollo-urbano-ddu/circulares-generales-por-numero/",
@@ -507,68 +508,59 @@ def scrape_minvu() -> dict:
             soup = BeautifulSoup(r.text, "html.parser")
 
             found_in_url = 0
-            # Buscamos más links para no perdernos la última (ej: 541)
             for a in soup.find_all("a"):
-                if found_in_url >= 50: 
+                if found_in_url >= 50:
                     break
 
                 href = a.get("href", "")
                 texto = a.get_text(separator=" ").strip()
                 texto = re.sub(r"\s+", " ", texto)
 
-                if is_item_valid(texto) and len(texto) > 10:
-                    found_in_url += 1
-                    
-                    # Intentar extraer fecha del texto, pero ignorar fechas irrelevantes (antiguas)
-                    date_found = None
-                    date_matches = re.finditer(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", texto + " " + (a.parent.get_text() if a.parent else ""))
-                    
-                    target_year = str(datetime.now(CHILE_TZ).year)
-                    for match in date_matches:
-                        d, m, y = match.groups()
-                        # Prioridad absoluta al año actual o 2025
-                        if y == target_year or y == "2025":
-                            date_found = f"{y}-{m.zfill(2)}-{d.zfill(2)}"
-                            break
-                        # Si no hay del año actual, nos quedamos con la primera que encontremos (pero la validaremos luego)
-                        if not date_found:
-                            date_found = f"{y}-{m.zfill(2)}-{d.zfill(2)}"
+                if not is_item_valid(texto) or len(texto) <= 10:
+                    continue
 
-                    # Buscar año en la URL (ej: /uploads/2026/03/)
-                    url_year_match = re.search(r"/(\202[456])/", href)
-                    if url_year_match:
-                        date_found = date_found or f"{url_year_match.group(1)}-01-01"
+                # Extraer año del texto o URL
+                year_in_text = re.search(r"\b(202[4-9])\b", texto)
+                year_in_url  = re.search(r"/(202[4-9])/", href)
+                is_recent = bool(year_in_text or year_in_url)
 
-                    link = href
-                    if link and link.startswith("/"):
-                        link = "https://www.minvu.gob.cl" + link
-                    
-                    # Solo guardamos si es relevante y no es basura histórica conocida
-                    blacklist = ["DDU-ESP 043", "DDU-ESP 061", "DDU-ESP 006", "P 006", "DDU-ESP 015"]
-                    is_blacklisted = any(b in texto for b in blacklist)
-                    
-                    if not is_blacklisted and ("minvu.gob.cl" in link.lower() or "ddu" in texto.lower()):
-                        # Si la fecha encontrada es muy antigua (como 2008), la descartamos
-                        if date_found and int(date_found.split("-")[0]) < 2024:
-                            date_found = None
+                # Extraer fecha completa si existe
+                date_found = None
+                for match in re.finditer(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", texto):
+                    d, m, y = match.groups()
+                    if y >= "2024":
+                        date_found = f"{y}-{m.zfill(2)}-{d.zfill(2)}"
+                        break
 
-                        # RIGUROSIDAD: Si no hay fecha o es dudosa, NO es de hoy.
-                        item_date = date_found if date_found else "2024-01-01"
-                        
-                        # Solo marcar como novedad si es HOY (YYYY-MM-DD)
-                        today_iso = datetime.now(CHILE_TZ).strftime("%Y-%m-%d")
-                        is_today = (date_found == today_iso) or is_spanish_date_today(texto)
-                        
-                        is_new = database.save_alert(
-                            source=source,
-                            title=texto[:300],
-                            url=link,
-                            category="norma_tecnica",
-                            date=item_date,
-                        )
-                        # Rigurosidad: Solo reportar como "encontrado hoy" si coincide la fecha
-                        if is_new and is_today:
-                            items.append(f"MINVU: {texto[:150]}")
+                # Si no hay año reciente ni en texto ni en URL → descartar
+                if not is_recent and not date_found:
+                    continue
+
+                # Blacklist de DDUs históricas conocidas
+                blacklist = ["DDU-ESP 043", "DDU-ESP 061", "DDU-ESP 006", "DDU-ESP 015"]
+                if any(b in texto for b in blacklist):
+                    continue
+
+                link = href
+                if link and link.startswith("/"):
+                    link = "https://www.minvu.gob.cl" + link
+
+                if not ("minvu.gob.cl" in link.lower() or "ddu" in texto.lower()):
+                    continue
+
+                item_date = date_found if date_found else today_iso
+                is_today  = (date_found == today_iso) or is_spanish_date_today(texto)
+
+                found_in_url += 1
+                is_new = database.save_alert(
+                    source=source,
+                    title=texto[:300],
+                    url=link,
+                    category="norma_tecnica",
+                    date=item_date,
+                )
+                if is_new and is_today:
+                    items.append(f"MINVU: {texto[:150]}")
 
     except Exception as e:
         database.save_scrape_history(source, 0, "error", str(e))
