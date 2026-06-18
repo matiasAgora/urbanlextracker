@@ -591,39 +591,39 @@ def scrape_minvu() -> dict:
 
 
 # ════════════════════════════════════════════════════════════════
-# BOT 4: BCN
+# BOT 4: BCN → CAMARA PRENSA
 # ════════════════════════════════════════════════════════════════
-
-
 def scrape_bcn() -> dict:
     source = "bcn"
     items = []
     try:
-        # Página de últimas publicaciones (ULP)
-        url = "https://www.bcn.cl/leychile/Consulta/portada_ulp"
+        url = "https://www.camara.cl/prensa/prensa_cms.aspx"
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         soup = BeautifulSoup(r.text, "html.parser")
-
-        for a in soup.find_all("a", href=re.compile(r"idNorma=")):
+        for a in soup.find_all("a", href=re.compile(r"\.(aspx|html|htm)", re.I)):
             texto = a.get_text().strip()
             link = a.get("href", "")
-            if is_item_valid(texto):
-                full_link = (
-                    "https://www.bcn.cl" + link if link.startswith("/") else link
-                )
-                is_new = database.save_alert(
-                    source=source,
-                    title=texto,
-                    url=full_link,
-                    category="ley",
-                    date=hoy_chile(),
-                )
-                if is_new:
-                    items.append(f"BCN: {texto}")
+            if not texto or len(texto) < 10:
+                continue
+            if not is_urban_topic(texto):
+                continue
+            full_link = (
+                "https://www.camara.cl" + link
+                if link.startswith("/")
+                else link
+            )
+            is_new = database.save_alert(
+                source=source,
+                title=texto,
+                url=full_link,
+                category="legislacion",
+                date=hoy_chile(),
+            )
+            if is_new:
+                items.append(f"Cámara Prensa: {texto}")
     except Exception as e:
         pass
-
-    informe_md = procesar_salida(source, items, "📚", "Biblioteca del Congreso")
+    informe_md = procesar_salida(source, items, "📚", "Cámara de Diputadas y Diputados")
     database.save_scrape_history(source, len(items), "success")
     return {
         "source": source,
