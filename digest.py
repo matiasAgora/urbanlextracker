@@ -314,7 +314,16 @@ def main():
     # 2. Procesar cada usuario — SIEMPRE envía, con o sin novedades
     users      = get_active_users(db)
     sent_count = 0
-
+# Deduplicar por email (puede haber múltiples perfiles por usuario)
+seen_emails = set()
+users_dedup = []
+for u in users:
+    em = u.get("email", "")
+    if em and em not in seen_emails:
+        seen_emails.add(em)
+        users_dedup.append(u)
+users = users_dedup
+logger.info(f"Usuarios únicos a notificar: {[u.get('email') for u in users]}")
     for user in users:
         email = user.get("email", "")
         if not email:
