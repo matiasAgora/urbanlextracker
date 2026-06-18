@@ -1,17 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Urban Lex Tracker — Digest de Email v1.0
-Proceso diario: recopila novedades normativas, genera resumen con Claude Haiku
-y las envía por email a los usuarios suscritos vía Resend.
-
-Flujo:
-1. Lee publications nuevas (is_new=True) de fuentes core (es_core=True)
-2. Para cada usuario con notify_email=True: filtra según sus subscriptions
-3. Genera resumen con Claude Haiku
-4. Envía email HTML vía Resend
-5. Registra en alerts_log
-6. Marca todas las publications core nuevas como is_new=False
+Urban Lex Tracker — Digest de Email v1.1
+Siempre envía email: con novedades o con mensaje de "sin novedades hoy".
 """
 
 import os
@@ -28,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ─── CONFIGURACIÓN ────────────────────────────────────────────
-FROM_EMAIL    = "ULT <ult@agorarevision.cl>"    # ← cambiar si se usa otro remitente
+FROM_EMAIL    = "ULT <ult@agorarevision.cl>"
 SUBJECT_BASE  = "ULT · Novedades normativas"
 HAIKU_MODEL   = "claude-haiku-4-5-20251001"
 CHILE_TZ      = pytz.timezone("America/Santiago")
@@ -71,12 +62,10 @@ def setup_resend():
 # ─── CONSULTAS DE BASE DE DATOS ───────────────────────────────
 
 def get_core_slugs(db: Client) -> list[str]:
-    """Slugs de las fuentes marcadas como es_core=True."""
     result = db.table("sources").select("slug").eq("es_core", True).execute()
     return [r["slug"] for r in (result.data or [])]
 
 def get_new_publications(db: Client, core_slugs: list[str]) -> list[dict]:
-    """Publications nuevas (is_new=True) de las fuentes core."""
     if not core_slugs:
         return []
     result = (
@@ -90,7 +79,6 @@ def get_new_publications(db: Client, core_slugs: list[str]) -> list[dict]:
     return result.data or []
 
 def get_active_users(db: Client) -> list[dict]:
-    """Usuarios con email cargado en user_profiles."""
     result = (
         db.table("user_profiles")
         .select("*")
@@ -100,7 +88,6 @@ def get_active_users(db: Client) -> list[dict]:
     return result.data or []
 
 def get_subscriptions(db: Client, user_id: str) -> list[dict]:
-    """Subscriptions activas con notify_email=True para un usuario."""
     result = (
         db.table("subscriptions")
         .select("*")
@@ -114,11 +101,6 @@ def get_subscriptions(db: Client, user_id: str) -> list[dict]:
 # ─── FILTRADO ─────────────────────────────────────────────────
 
 def filter_for_user(publications: list[dict], subs: list[dict]) -> list[dict]:
-    """
-    Filtra las publications según las subscriptions del usuario.
-    - Sin keywords → recibe todas las de esa fuente.
-    - Con keywords  → solo las que contienen alguna keyword en el título.
-    """
     seen, result = set(), []
     for sub in subs:
         slug     = sub.get("source_slug", "")
@@ -135,7 +117,6 @@ def filter_for_user(publications: list[dict], subs: list[dict]) -> list[dict]:
 # ─── RESUMEN ──────────────────────────────────────────────────
 
 def generate_summary(publications: list[dict], claude) -> str:
-    """Resumen ejecutivo en viñetas generado con Claude Haiku."""
     fecha  = datetime.now(CHILE_TZ).strftime("%d de %B de %Y")
     items  = "\n".join(
         f"- [{p.get('source_slug','').upper()}] {p['title']}"
@@ -161,11 +142,59 @@ def generate_summary(publications: list[dict], claude) -> str:
 
 # ─── EMAIL ────────────────────────────────────────────────────
 
+def build_html_sin_novedades(fecha: str) -> str:
+    """Email cuando no hay publicaciones nuevas."""
+    return f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:20px;color:#222">
+
+  <div style="background:#1a5276;padding:20px 24px;border-radius:8px 8px 0 0">
+    <h1 style="color:#fff;margin:0;font-size:22px">ULT · Urban Lex Tracker</h1>
+    <p style="color:#aed6f1;margin:6px 0 0;font-size:13px">By AGORA Revisores &nbsp;·&nbsp; {fecha}</p>
+  </div>
+
+  <div style="border:1px solid #d5e8f0;border-top:none;padding:24px;border-radius:0 0 8px 8px">
+
+    <div style="text-align:center;padding:32px 0">
+      <div style="font-size:48px;margin-bottom:16px">◎</div>
+      <h2 style="color:#1a5276;margin:0 0 12px;font-size:20px">Sin novedades hoy</h2>
+      <p style="color:#555;font-size:15px;line-height:1.6;max-width:420px;margin:0 auto">
+        Al momento del envío de este digest no se detectaron publicaciones
+        nuevas en las fuentes normativas monitoreadas.
+      </p>
+    </div>
+
+    <div style="background:#f4f9fd;padding:16px 20px;border-radius:6px;margin-top:8px">
+      <p style="margin:0;font-size:13px;color:#555;line-height:1.7">
+        <strong>Fuentes monitoreadas:</strong><br>
+        Diario Oficial · MINVU/DDU · Contraloría General · Biblioteca del Congreso · Proyectos de Ley
+      </p>
+    </div>
+
+    <p style="font-size:13px;color:#888;margin:24px 0 0;line-height:1.6">
+      Cuando se detecten nuevas publicaciones relevantes para tu perfil,
+      recibirás el digest completo con resumen ejecutivo y links directos.
+    </p>
+
+    <hr style="border:none;border-top:1px solid #eee;margin:28px 0">
+
+    <p style="font-size:11px;color:#aaa;margin:0">
+      ULT — Urban Lex Tracker &nbsp;·&nbsp; By AGORA Revisores<br>
+      Recibes este digest porque estás suscrito al seguimiento normativo urbanístico.
+    </p>
+  </div>
+</body>
+</html>"""
+
+
 def build_html(publications: list[dict], summary_md: str, fecha: str) -> str:
-    """Construye el HTML del email de digest."""
+    """Email con publicaciones nuevas."""
     summary_html = markdown.markdown(summary_md)
 
-    # Agrupar por fuente
     by_source: dict[str, list] = {}
     for p in publications:
         by_source.setdefault(p["source_slug"], []).append(p)
@@ -193,13 +222,11 @@ def build_html(publications: list[dict], summary_md: str, fecha: str) -> str:
 </head>
 <body style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:20px;color:#222">
 
-  <!-- Cabecera -->
   <div style="background:#1a5276;padding:20px 24px;border-radius:8px 8px 0 0">
     <h1 style="color:#fff;margin:0;font-size:22px">ULT · Urban Lex Tracker</h1>
     <p style="color:#aed6f1;margin:6px 0 0;font-size:13px">By AGORA Revisores &nbsp;·&nbsp; {fecha}</p>
   </div>
 
-  <!-- Cuerpo -->
   <div style="border:1px solid #d5e8f0;border-top:none;padding:24px;border-radius:0 0 8px 8px">
     <p style="font-size:16px;margin-top:0">
       Tienes <strong>{noun}</strong> desde el último digest.
@@ -225,15 +252,13 @@ def build_html(publications: list[dict], summary_md: str, fecha: str) -> str:
 </html>"""
 
 
-def send_email(to: str, html: str, n: int, fecha: str) -> bool:
-    """Envía el digest vía Resend. Retorna True si fue exitoso."""
-    subject = f"{SUBJECT_BASE} — {n} novedad{'es' if n != 1 else ''} · {fecha}"
+def send_email(to: str, html: str, subject: str) -> bool:
     try:
         resp = resend.Emails.send({
-            "from": FROM_EMAIL,
-            "to":   [to],
+            "from":    FROM_EMAIL,
+            "to":      [to],
             "subject": subject,
-            "html": html,
+            "html":    html,
         })
         logger.info(f"✓ Email enviado a {to} — id: {resp.get('id','?')}")
         return True
@@ -245,7 +270,6 @@ def send_email(to: str, html: str, n: int, fecha: str) -> bool:
 # ─── REGISTRO Y LIMPIEZA ──────────────────────────────────────
 
 def log_alerts(db: Client, user_id: str, publications: list[dict]):
-    """Registra en alerts_log una fila por publicación enviada al usuario."""
     now  = datetime.now(timezone.utc).isoformat()
     rows = [
         {"user_id": user_id, "publication_id": p["id"],
@@ -259,7 +283,6 @@ def log_alerts(db: Client, user_id: str, publications: list[dict]):
             logger.warning(f"Error en alerts_log para {user_id}: {e}")
 
 def mark_processed(db: Client, pub_ids: list[str]):
-    """Marca las publications procesadas como is_new=False."""
     if not pub_ids:
         return
     try:
@@ -275,7 +298,7 @@ def main():
     logger.info("═══ ULT Digest — inicio ═══")
     fecha = datetime.now(CHILE_TZ).strftime("%d de %B de %Y")
 
-    db    = get_db()
+    db     = get_db()
     claude = get_claude()
     setup_resend()
 
@@ -286,11 +309,9 @@ def main():
     new_pubs = get_new_publications(db, core_slugs)
     logger.info(f"Publications nuevas: {len(new_pubs)}")
 
-    if not new_pubs:
-        logger.info("Sin novedades — no se envían emails.")
-        return
+    hay_novedades = len(new_pubs) > 0
 
-    # 2. Procesar cada usuario
+    # 2. Procesar cada usuario — SIEMPRE envía, con o sin novedades
     users      = get_active_users(db)
     sent_count = 0
 
@@ -304,24 +325,42 @@ def main():
             logger.info(f"{email}: sin subscriptions — omitiendo")
             continue
 
-        user_pubs = filter_for_user(new_pubs, subs)
-        if not user_pubs:
-            logger.info(f"{email}: sin novedades en sus fuentes — omitiendo")
+        if not hay_novedades:
+            # Sin novedades: email de aviso a todos los suscritos
+            logger.info(f"{email}: sin novedades → enviando aviso")
+            subject = f"{SUBJECT_BASE} — Sin novedades hoy · {fecha}"
+            html    = build_html_sin_novedades(fecha)
+            if send_email(email, html, subject):
+                sent_count += 1
             continue
 
+        # Con novedades: filtrar por subscriptions del usuario
+        user_pubs = filter_for_user(new_pubs, subs)
+
+        if not user_pubs:
+            # Hay novedades globales pero ninguna coincide con sus filtros
+            logger.info(f"{email}: novedades no coinciden con sus filtros → enviando aviso")
+            subject = f"{SUBJECT_BASE} — Sin novedades en tus fuentes · {fecha}"
+            html    = build_html_sin_novedades(fecha)
+            if send_email(email, html, subject):
+                sent_count += 1
+            continue
+
+        # Tiene novedades relevantes: resumen + email completo
         logger.info(f"{email}: {len(user_pubs)} novedades → generando resumen...")
         summary = generate_summary(user_pubs, claude)
+        n       = len(user_pubs)
+        subject = f"{SUBJECT_BASE} — {n} novedad{'es' if n != 1 else ''} · {fecha}"
         html    = build_html(user_pubs, summary, fecha)
 
-        if send_email(email, html, len(user_pubs), fecha):
+        if send_email(email, html, subject):
             log_alerts(db, user["id"], user_pubs)
             sent_count += 1
 
-    # 3. Marcar todas las publications core nuevas como procesadas
-    # Nota: se marcan todas (enviadas o no) para que el próximo digest
-    # solo procese lo realmente nuevo. En v1 se puede refinar con retry.
-    all_ids = [p["id"] for p in new_pubs]
-    mark_processed(db, all_ids)
+    # 3. Marcar publicaciones como procesadas (solo si había novedades)
+    if hay_novedades:
+        all_ids = [p["id"] for p in new_pubs]
+        mark_processed(db, all_ids)
 
     logger.info(f"═══ ULT Digest — fin · {sent_count} emails enviados ═══")
 
